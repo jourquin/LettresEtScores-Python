@@ -3,8 +3,8 @@
 Ce document décrit l'algorithme utilisé par `engine.py` pour déterminer, à
 partir d'une série de lettres :
 
-- les trois mots les plus longs qui peuvent être formés ;
-- les trois mots dont les lettres rapportent le plus de points au Scrabble
+- les N mots les plus longs qui peuvent être formés ;
+- les N mots dont les lettres rapportent le plus de points au Scrabble
   français.
 
 Les définitions du Wiktionnaire sont recherchées dans un second temps et
@@ -117,7 +117,7 @@ Le calcul ne tient pas compte :
 
 Il s'agit donc de la valeur brute des tuiles utilisées pour former le mot.
 
-## 5. Sélection des trois mots les plus longs
+## 5. Sélection des mots les plus longs
 
 Les candidats sont classés selon les critères suivants, dans cet ordre :
 
@@ -131,7 +131,7 @@ La clé de tri employée dans le programme est équivalente à :
 (-longueur, -score, mot)
 ```
 
-## 6. Sélection des trois meilleurs scores
+## 6. Sélection des meilleurs scores
 
 Le second classement inverse la priorité des deux premiers critères :
 
@@ -145,10 +145,10 @@ La clé de tri correspondante est :
 (-score, -longueur, mot)
 ```
 
-Le programme ne conserve que les trois meilleurs éléments de chaque
+Le programme ne conserve que les N meilleurs éléments de chaque
 classement. Lorsqu'un candidat valable est trouvé, il est ajouté à chacun des
 deux petits tableaux, le tableau est trié, puis tous les éléments au-delà de la
-troisième position sont supprimés.
+Nème position sont supprimés.
 
 ## 7. Pseudocode simplifié
 
@@ -176,7 +176,7 @@ pour chaque mot dont la longueur est compatible :
         score = score_de_base - pénalité_jokers
         insérer le mot dans le classement par longueur
         insérer le mot dans le classement par score
-        ne conserver que les trois premiers de chaque classement
+        ne conserver que les N premiers de chaque classement
 ```
 
 ## 8. Complexité
