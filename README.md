@@ -44,6 +44,12 @@ Si Tkinter manque sous Debian ou Ubuntu :
 sudo apt install python3-tk
 ```
 
+Si Tkinter manque sous RH ou Fedora :
+
+```bash
+sudo dnf install python3-tkinter
+```
+
 ## Utilisation
 
 1. Introduisez de 2 à 15 lettres.
