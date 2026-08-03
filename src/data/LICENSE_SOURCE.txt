@@ -1,0 +1,64 @@
+AVIS RELATIF À LA COMPILATION
+=============================
+
+Auteur de la compilation, de la normalisation et de la documentation :
+
+Bart Jourquin <bart.jourquin@gmail.com>
+
+Cette attribution concerne le travail de sélection, de transformation, de
+normalisation, de contrôle et de documentation réalisé pour produire les
+fichiers de cette archive. Elle ne remplace pas les mentions de droits et de
+licence attachées aux données sources.
+
+
+TRADUCTION FRANÇAISE NON OFFICIELLE DE LA LICENCE MIT
+=====================================================
+
+Copyright (c) 2016 Zeke Sikelianos <zeke@sikelianos.com>
+
+La permission est accordée, gratuitement, à toute personne obtenant une copie
+de ce logiciel et des fichiers de documentation associés (le « Logiciel »),
+d'utiliser le Logiciel sans restriction, notamment, mais sans limitation, les
+droits d'utiliser, de copier, de modifier, de fusionner, de publier, de
+distribuer, de concéder en sous-licence et/ou de vendre des copies du Logiciel,
+ainsi que d'autoriser les personnes auxquelles le Logiciel est fourni à le
+faire, sous réserve des conditions suivantes :
+
+La présente mention de copyright et la présente mention d'autorisation doivent
+être incluses dans toutes les copies ou parties substantielles du Logiciel.
+
+LE LOGICIEL EST FOURNI « EN L'ÉTAT », SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU
+IMPLICITE, NOTAMMENT, MAIS SANS LIMITATION, LES GARANTIES DE QUALITÉ MARCHANDE,
+D'ADÉQUATION À UN USAGE PARTICULIER ET D'ABSENCE DE CONTREFAÇON. EN AUCUN CAS
+LES AUTEURS OU LES TITULAIRES DES DROITS D'AUTEUR NE POURRONT ÊTRE TENUS
+RESPONSABLES DE TOUTE RÉCLAMATION, DE TOUT DOMMAGE OU DE TOUTE AUTRE
+RESPONSABILITÉ, DANS LE CADRE D'UNE ACTION CONTRACTUELLE, DÉLICTUELLE OU AUTRE,
+DÉCOULANT DU LOGICIEL, DE SON UTILISATION OU D'AUTRES OPÉRATIONS PORTANT SUR LE
+LOGICIEL, OU EN RELATION AVEC CEUX-CI.
+
+Cette traduction est fournie à titre informatif. En cas de divergence, le
+texte anglais original ci-dessous prévaut.
+
+
+ORIGINAL EN ANGLAIS — THE MIT LICENSE
+=====================================
+
+Copyright (c) 2016 Zeke Sikelianos <zeke@sikelianos.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
