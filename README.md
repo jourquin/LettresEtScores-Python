@@ -17,7 +17,7 @@ Prérequis : **Python 3.10 ou plus récent**, avec Tkinter.
 Double-cliquez sur `lancer_windows.bat`, ou ouvrez un terminal dans le dossier :
 
 ```powershell
-py -3 app.py
+py -3 src\app.py
 ```
 
 ### macOS
@@ -25,7 +25,7 @@ py -3 app.py
 Dans le Terminal :
 
 ```bash
-python3 app.py
+python3 src/app.py
 ```
 
 Tkinter est normalement fourni avec l'installateur Python de python.org.
@@ -98,7 +98,7 @@ général est fournie dans `LICENSE_SOURCE.txt`.
 
 ## Tests
 
-Depuis le dossier de l'application :
+Depuis le dossier src :
 
 ```bash
 python3 -m unittest discover -s tests -v
