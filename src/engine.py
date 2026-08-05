@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from time import perf_counter
 import unicodedata
 
@@ -21,6 +22,10 @@ POINTS_BY_INDEX = tuple(LETTER_POINTS[chr(65 + index)] for index in range(26))
 
 class RackError(ValueError):
     """Erreur de validation des lettres fournies par l'utilisateur."""
+
+
+class ConstraintError(ValueError):
+    """Erreur de syntaxe dans une contrainte d'expression régulière."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,6 +90,24 @@ def normalize_rack(raw: str) -> tuple[str, int]:
     return "".join(letters), jokers
 
 
+def compile_constraints(raw: str) -> tuple[re.Pattern[str], ...]:
+    """Compile des motifs séparés par « ; », qui devront tous correspondre."""
+
+    patterns: list[re.Pattern[str]] = []
+    for raw_pattern in raw.split(";"):
+        pattern = raw_pattern.strip()
+        if not pattern:
+            continue
+        try:
+            patterns.append(re.compile(pattern, re.IGNORECASE))
+        except re.error as exc:
+            detail = getattr(exc, "msg", str(exc))
+            raise ConstraintError(
+                f"Contrainte invalide {pattern!r} : {detail}."
+            ) from exc
+    return tuple(patterns)
+
+
 class WordFinder:
     """Index compact d'une liste de mots normalisés A-Z."""
 
@@ -133,12 +156,18 @@ class WordFinder:
         candidates.sort(key=key)
         del candidates[limit:]
 
-    def search(self, raw_letters: str, limit: int = 3) -> SearchResult:
+    def search(
+        self,
+        raw_letters: str,
+        limit: int = 10,
+        raw_constraints: str = "",
+    ) -> SearchResult:
         if limit < 1:
             raise ValueError("La limite doit être positive.")
 
         started = perf_counter()
         letters, jokers = normalize_rack(raw_letters)
+        constraints = compile_constraints(raw_constraints)
         rack_counts = [0] * 26
         for character in letters:
             rack_counts[ord(character) - 65] += 1
@@ -150,6 +179,9 @@ class WordFinder:
 
         for length in range(2, max_length + 1):
             for entry in self._by_length[length]:
+                if any(pattern.search(entry.word) is None for pattern in constraints):
+                    continue
+
                 missing = 0
                 joker_penalty = 0
                 for index, required in enumerate(entry.counts):
@@ -187,4 +219,3 @@ class WordFinder:
             normalized_letters=letters,
             joker_count=jokers,
         )
-

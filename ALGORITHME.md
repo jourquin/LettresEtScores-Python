@@ -54,15 +54,39 @@ dictionnaire :
 - suppression des séparateurs autorisés : espaces, virgules, tirets, etc. ;
 - comptage séparé des jokers représentés par `?` ou `*`.
 
-Le tirage doit contenir entre 2 et 15 tuiles, dont au maximum deux jokers.
+Le tirage doit contenir entre 2 et 15 lettres ou jokers, dont au maximum deux
+jokers.
+Les contraintes sont saisies dans un champ séparé et ne modifient jamais les
+lettres disponibles.
 
 Un tableau `R` de 26 compteurs est ensuite construit. `R[i]` représente le
 nombre d'exemplaires disponibles de la lettre `i` dans le tirage.
 
-## 3. Vérification qu'un mot peut être formé
+## 3. Vérification des contraintes
 
-Pour chaque mot dont la longueur ne dépasse pas le nombre de tuiles, le moteur
-compare :
+Le champ de contraintes contient des expressions régulières compatibles avec
+le module `re` de Python. Les motifs sont séparés par `;`, les espaces placés
+autour sont supprimés et chaque motif est compilé une seule fois, sans tenir
+compte de la casse.
+
+Pour chaque mot candidat, le moteur applique successivement tous les motifs
+avec une recherche non ancrée. Le mot est rejeté dès qu'un motif ne correspond
+pas. Les ancres permettent à l'utilisateur de préciser la position :
+
+- `a` impose la présence de `A` à un endroit quelconque ;
+- `^a` impose `A` au début du mot ;
+- `e$` impose `E` à la fin du mot ;
+- `^..r` impose `R` en troisième position ;
+- `u.$` impose `U` en avant-dernière position.
+
+Les contraintes `^j ; ^..r ; a$` sont toutes obligatoires et sont équivalentes
+au motif unique `^j.r.*a$`. Une erreur de compilation est présentée à
+l'utilisateur avant de lancer la recherche.
+
+## 4. Vérification qu'un mot peut être formé
+
+Pour chaque mot dont la longueur ne dépasse pas le nombre de lettres et de
+jokers disponibles, le moteur compare :
 
 - `W[i]` : le nombre d'occurrences de la lettre `i` dans le mot ;
 - `R[i]` : le nombre d'occurrences de cette lettre dans le tirage.
@@ -86,7 +110,7 @@ Cette comparaison respecte les répétitions. Ainsi, un seul `A` dans le tirage
 ne suffit pas pour former un mot qui en contient deux, sauf si un joker couvre
 le second `A`.
 
-## 4. Calcul des points
+## 5. Calcul des points
 
 Le score de base d'un mot est la somme des valeurs de ses lettres :
 
@@ -115,9 +139,9 @@ Le calcul ne tient pas compte :
 - des lettres déjà présentes sur la grille ;
 - de la prime de 50 points pour l'utilisation des sept lettres.
 
-Il s'agit donc de la valeur brute des tuiles utilisées pour former le mot.
+Il s'agit donc de la valeur brute des lettres utilisées pour former le mot.
 
-## 5. Sélection des mots les plus longs
+## 6. Sélection des mots les plus longs
 
 Les candidats sont classés selon les critères suivants, dans cet ordre :
 
@@ -131,7 +155,7 @@ La clé de tri employée dans le programme est équivalente à :
 (-longueur, -score, mot)
 ```
 
-## 6. Sélection des meilleurs scores
+## 7. Sélection des meilleurs scores
 
 Le second classement inverse la priorité des deux premiers critères :
 
@@ -150,17 +174,22 @@ classement. Lorsqu'un candidat valable est trouvé, il est ajouté à chacun des
 deux petits tableaux, le tableau est trié, puis tous les éléments au-delà de la
 Nème position sont supprimés.
 
-## 7. Pseudocode simplifié
+## 8. Pseudocode simplifié
 
 ```text
 charger et indexer les mots par longueur
 normaliser les lettres introduites
+séparer et compiler les expressions régulières
 compter les lettres du tirage
 
 meilleurs_longueurs = liste vide
 meilleurs_scores = liste vide
 
 pour chaque mot dont la longueur est compatible :
+    pour chaque expression régulière :
+        si l'expression ne correspond pas au mot :
+            rejeter immédiatement le mot
+
     lettres_manquantes = 0
     pénalité_jokers = 0
 
@@ -179,24 +208,29 @@ pour chaque mot dont la longueur est compatible :
         ne conserver que les N premiers de chaque classement
 ```
 
-## 8. Complexité
+## 9. Complexité
 
-Soit `N` le nombre de mots dont la longueur est compatible avec le tirage.
-Pour chaque mot, le moteur compare au maximum 26 compteurs. Comme la taille de
-l'alphabet est constante, la recherche est linéaire par rapport au nombre de
+Soit `C` le nombre de mots dont la longueur est compatible avec le tirage. Sans
+contrainte, le moteur compare au maximum 26 compteurs par mot. Comme la taille
+de l'alphabet est constante, cette partie est linéaire par rapport au nombre de
 mots examinés :
 
-**O(26N) = O(N)**
+**O(26C) = O(C)**
 
-La mise à jour des classements ne porte jamais sur plus de quatre éléments et
-peut donc être considérée comme une opération de coût constant. Les deux listes
-de résultats occupent également un espace constant.
+Le coût supplémentaire dépend du nombre et de la complexité des expressions
+régulières. Il reste faible pour les motifs positionnels prévus ici, notamment
+parce qu'un mot ne dépasse jamais 15 lettres. Des expressions volontairement
+complexes avec beaucoup de retours arrière peuvent néanmoins être plus lentes.
+
+La mise à jour des classements ne porte jamais sur plus de `N + 1` éléments,
+où `N` est le nombre de résultats demandé, limité à 20 dans l'interface. Les
+deux listes de résultats occupent donc un espace borné.
 
 L'index complet occupe un espace proportionnel au nombre de mots : `O(N)`. Il
 est construit une fois au lancement afin que les recherches suivantes puissent
 être effectuées directement en mémoire, sans requête vers une base de données.
 
-## 9. Limites
+## 10. Limites
 
 - La qualité des résultats dépend de la liste de mots fournie. Cette liste est
   approchante et non homologuée pour la compétition.
@@ -206,3 +240,5 @@ est construit une fois au lancement afin que les recherches suivantes puissent
   des raccords possibles ni des multiplicateurs.
 - Les graphies accentuées sont confondues après normalisation, comme au
   Scrabble francophone.
+- Les mots du dictionnaire étant normalisés avec les lettres `A` à `Z`, il est
+  préférable d'utiliser des lettres non accentuées dans les motifs.

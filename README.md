@@ -3,7 +3,7 @@
 Petite application graphique en Python qui recherche, à partir des lettres
 fournies :
 
-- les mots les plus longs (trois résultats par défaut) ;
+- les mots les plus longs (dix résultats par défaut) ;
 - les mots ayant la plus grande valeur au Scrabble français ;
 - la définition d'un mot sélectionné, lorsque l'ordinateur est connecté à
   Internet.
@@ -52,14 +52,52 @@ sudo dnf install python3-tkinter
 
 ## Utilisation
 
-1. Introduisez de 2 à 15 lettres.
+1. Introduisez de 2 à 15 lettres dans le champ **Vos lettres**.
 2. Utilisez `?` ou `*` pour représenter un joker, au maximum deux.
-3. Choisissez le nombre de résultats à afficher, de 1 à 20 (3 par défaut).
-4. Cliquez sur **Chercher**.
-5. Sélectionnez un résultat puis cliquez sur **Voir la définition**.
+3. Saisissez éventuellement un ou plusieurs motifs dans le champ
+   **Contraintes**.
+4. Choisissez le nombre de résultats à afficher, de 1 à 20 (10 par défaut).
+5. Cliquez sur **Chercher**.
+6. Sélectionnez un résultat puis cliquez sur **Voir la définition**.
 
 Les espaces, virgules, tirets et accents sont acceptés dans la saisie. Les
 jokers permettent de compléter un mot mais valent zéro point.
+
+### Contraintes de recherche
+
+Les contraintes utilisent la syntaxe courante des expressions régulières,
+connue notamment par les utilisateurs de `grep`. Elles sont saisies dans un
+champ distinct des lettres disponibles.
+
+| Motif | Signification |
+| --- | --- |
+| `a` | le mot doit contenir un `A` |
+| `^a` | le mot doit commencer par `A` |
+| `e$` | le mot doit se terminer par `E` |
+| `^..r` | `R` doit être la troisième lettre |
+| `u.$` | `U` doit être l'avant-dernière lettre |
+| `^j.r.*a$` | le mot commence par `J`, contient `R` en troisième position et finit par `A` |
+
+Les principaux symboles sont `^` pour le début du mot, `$` pour la fin, `.`
+pour exactement une lettre quelconque et `.*` pour zéro ou plusieurs lettres.
+Les barres obliques parfois utilisées pour présenter une expression régulière
+ne doivent pas être saisies.
+
+Plusieurs motifs peuvent être séparés par un point-virgule. Ils doivent alors
+tous correspondre. Les deux saisies suivantes sont donc équivalentes :
+
+```text
+^j ; ^..r ; a$
+^j.r.*a$
+```
+
+Avec les lettres `a, j, u, r, f, o, a`, ces contraintes trouvent notamment
+`JURA`.
+
+Une contrainte filtre les résultats, mais n'ajoute jamais de lettre au tirage.
+Ainsi, le motif `^c` ne permet de former `CHAT` que si un `C` ou un joker figure
+aussi dans le champ **Vos lettres**. Les motifs sont insensibles à la casse.
+Une expression invalide est signalée avant le lancement de la recherche.
 
 ## Règles de calcul
 
@@ -97,10 +135,10 @@ définition est trouvée.
 
 ## Données et limites
 
-Le fichier `data/mots_francais_jeu.txt` contient 311 721 formes. Il s'agit d'une
-liste approchante pour jeu de lettres, pas d'une copie officielle de l'ODS et
-pas d'une référence homologuée pour la compétition. La licence du corpus
-général est fournie dans `LICENSE_SOURCE.txt`.
+Le fichier `src/data/mots_francais_jeu.txt` contient 311 721 formes. Il s'agit
+d'une liste approchante pour jeu de lettres, pas d'une copie officielle de
+l'ODS et pas d'une référence homologuée pour la compétition. La licence du
+corpus général est fournie dans `LICENSE_SOURCE.txt`.
 
 ## Tests
 

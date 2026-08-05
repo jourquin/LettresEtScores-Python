@@ -11,7 +11,14 @@ from urllib.parse import quote
 import webbrowser
 
 from definitions import DefinitionResult, WiktionaryClient
-from engine import RackError, SearchResult, WordFinder
+from engine import (
+    ConstraintError,
+    RackError,
+    SearchResult,
+    WordFinder,
+    compile_constraints,
+    normalize_rack,
+)
 
 
 APP_NAME = "Lettres & Scores"
@@ -83,8 +90,8 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(APP_NAME)
-        self.geometry("980x720")
-        self.minsize(840, 620)
+        self.geometry("980x780")
+        self.minsize(840, 680)
         self.configure(background=COLORS["background"])
 
         self.finder: WordFinder | None = None
@@ -189,7 +196,7 @@ class App(tk.Tk):
         search_card.pack(fill="x")
         ttk.Label(
             search_card,
-            text="Votre série de lettres",
+            text="Vos lettres",
             style="CardTitle.TLabel",
         ).grid(row=0, column=0, columnspan=3, sticky="w")
 
@@ -214,7 +221,7 @@ class App(tk.Tk):
             text="Nombre de résultats",
             style="Muted.TLabel",
         ).pack(anchor="w", pady=(0, 3))
-        self.result_count_var = tk.StringVar(value="3")
+        self.result_count_var = tk.StringVar(value="10")
         self.result_count = ttk.Spinbox(
             count_frame,
             from_=1,
@@ -236,9 +243,47 @@ class App(tk.Tk):
         search_card.columnconfigure(0, weight=1)
         ttk.Label(
             search_card,
-            text="Espaces et accents acceptés · ? ou * = joker (0 point) · 15 lettres maximum",
+            text=(
+                "Espaces, virgules, points-virgules et accents acceptés · "
+                "? ou * = joker · 15 lettres ou jokers maximum"
+            ),
             style="Muted.TLabel",
         ).grid(row=2, column=0, columnspan=3, sticky="w")
+
+        ttk.Label(
+            search_card,
+            text="Contraintes (facultatives)",
+            style="CardTitle.TLabel",
+        ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(14, 0))
+
+        self.constraints_var = tk.StringVar()
+        self.constraints_entry = tk.Entry(
+            search_card,
+            textvariable=self.constraints_var,
+            font=("TkFixedFont", 13),
+            foreground=COLORS["navy"],
+            background="#FBFCFA",
+            insertbackground=COLORS["navy"],
+            relief="solid",
+            borderwidth=1,
+        )
+        self.constraints_entry.grid(
+            row=4,
+            column=0,
+            columnspan=3,
+            sticky="ew",
+            pady=(7, 5),
+            ipady=5,
+        )
+        self.constraints_entry.bind("<Return>", lambda _event: self._start_search())
+        ttk.Label(
+            search_card,
+            text=(
+                "Exemples : a = contient A · ^a = commence par A · "
+                "e$ = finit par E · ^..r = R en 3e · séparez par ;"
+            ),
+            style="Muted.TLabel",
+        ).grid(row=5, column=0, columnspan=3, sticky="w")
 
         results = ttk.Frame(main, style="App.TFrame")
         results.pack(fill="both", expand=True, pady=(18, 0))
@@ -246,8 +291,8 @@ class App(tk.Tk):
         results.columnconfigure(1, weight=1)
         results.rowconfigure(0, weight=1)
 
-        self.longest_title_var = tk.StringVar(value="Les trois mots les plus longs")
-        self.score_title_var = tk.StringVar(value="Les trois meilleurs scores")
+        self.longest_title_var = tk.StringVar(value="Les 10 mots les plus longs")
+        self.score_title_var = tk.StringVar(value="Les 10 meilleurs scores")
         self.longest_tree = self._make_result_card(results, self.longest_title_var, 0)
         self.score_tree = self._make_result_card(results, self.score_title_var, 1)
 
@@ -383,15 +428,19 @@ class App(tk.Tk):
         if not self.finder:
             return
         raw_letters = self.letters_var.get()
+        raw_constraints = self.constraints_var.get()
         try:
             # Validation immédiate : les erreurs apparaissent sans lancer de thread.
-            from engine import normalize_rack
-
             normalize_rack(raw_letters)
+            compile_constraints(raw_constraints)
             limit = self._requested_limit()
         except RackError as exc:
             messagebox.showwarning(APP_NAME, str(exc))
             self.entry.focus_set()
+            return
+        except ConstraintError as exc:
+            messagebox.showwarning(APP_NAME, str(exc))
+            self.constraints_entry.focus_set()
             return
         except ValueError as exc:
             messagebox.showwarning(APP_NAME, str(exc))
@@ -403,7 +452,13 @@ class App(tk.Tk):
         self.definition_button.configure(state="disabled")
         self.search_button.configure(state="disabled")
         self._start_activity("Recherche en cours…")
-        self._submit(self.finder.search, self._show_results, raw_letters, limit)
+        self._submit(
+            self.finder.search,
+            self._show_results,
+            raw_letters,
+            limit,
+            raw_constraints,
+        )
 
     @staticmethod
     def _fill_tree(tree: ttk.Treeview, candidates) -> None:
