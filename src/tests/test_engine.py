@@ -85,6 +85,12 @@ class EngineTests(unittest.TestCase):
         result = self.finder.search("C,H,A,T,S", raw_constraints="t.$")
         self.assertEqual([item.word for item in result.longest], ["CHATS"])
 
+    def test_exact_length_and_second_letter_are_enforced(self):
+        pattern = compile_constraints("^.e..$")[0]
+        self.assertIsNotNone(pattern.search("TEST"))
+        self.assertIsNone(pattern.search("CHAT"))
+        self.assertIsNone(pattern.search("TESTS"))
+
     def test_combined_example_finds_jura(self):
         result = self.finder.search(
             "A,J,U,R,F,O,A",

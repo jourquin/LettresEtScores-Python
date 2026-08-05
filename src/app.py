@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import messagebox, ttk
 from urllib.parse import quote
 import webbrowser
@@ -34,6 +35,24 @@ COLORS = {
     "muted": "#62717E",
     "border": "#D8DDD9",
 }
+
+CONSTRAINT_EXAMPLES = (
+    ("a", "Le mot contient la lettre A."),
+    ("^a", "Le mot commence par A."),
+    ("e$", "Le mot se termine par E."),
+    ("^..r", "R est la troisième lettre."),
+    ("u.$", "U est l’avant-dernière lettre."),
+    ("^....$", "Le mot contient exactement 4 lettres."),
+    ("^.e..$", "Le mot contient 4 lettres et la deuxième est E."),
+    ("^a...$", "Le mot contient 4 lettres et commence par A."),
+    ("^...s$", "Le mot contient 4 lettres et se termine par S."),
+    ("^.{5}$", "Le mot contient exactement 5 lettres."),
+    ("^.{5,7}$", "Le mot contient entre 5 et 7 lettres."),
+    ("^[aeiou]", "Le mot commence par une voyelle."),
+    ("[sx]$", "Le mot se termine par S ou X."),
+    ("^j ; ^..r ; a$", "Trois contraintes obligatoires séparées par des ;"),
+    ("^j.r.*a$", "J au début, R en troisième position et A à la fin."),
+)
 
 
 class DefinitionWindow(tk.Toplevel):
@@ -84,6 +103,83 @@ class DefinitionWindow(tk.Toplevel):
             style="Secondary.TButton",
             command=lambda: webbrowser.open(result.url),
         ).pack(anchor="e", pady=(14, 0))
+
+
+class ConstraintHelpWindow(tk.Toplevel):
+    """Aide intégrée présentant les principaux motifs de recherche."""
+
+    def __init__(self, parent: tk.Misc):
+        super().__init__(parent)
+        self.title("Aide — contraintes de recherche")
+        self.geometry("720x590")
+        self.minsize(620, 480)
+        self.configure(background=COLORS["background"])
+        self.transient(parent)
+
+        container = ttk.Frame(self, padding=22, style="Card.TFrame")
+        container.pack(fill="both", expand=True, padx=18, pady=18)
+        container.columnconfigure(0, weight=1)
+        container.rowconfigure(2, weight=1)
+
+        ttk.Label(
+            container,
+            text="EXEMPLES DE CONTRAINTES",
+            style="DefinitionTitle.TLabel",
+        ).grid(row=0, column=0, sticky="w")
+        ttk.Label(
+            container,
+            text=(
+                "Les contraintes utilisent des expressions régulières. "
+                "Les motifs sont insensibles à la casse. Plusieurs motifs "
+                "séparés par un point-virgule doivent tous correspondre."
+            ),
+            style="Muted.TLabel",
+            justify="left",
+            wraplength=650,
+        ).grid(row=1, column=0, sticky="ew", pady=(5, 14))
+
+        table_frame = ttk.Frame(container, style="Card.TFrame")
+        table_frame.grid(row=2, column=0, sticky="nsew")
+        table_frame.columnconfigure(0, weight=1)
+        table_frame.rowconfigure(0, weight=1)
+
+        tree = ttk.Treeview(
+            table_frame,
+            columns=("pattern", "meaning"),
+            show="headings",
+            height=12,
+            style="ConstraintHelp.Treeview",
+        )
+        tree.heading("pattern", text="MOTIF")
+        tree.heading("meaning", text="SIGNIFICATION")
+        tree.column("pattern", width=155, minwidth=130, anchor="w", stretch=False)
+        tree.column("meaning", width=450, minwidth=320, anchor="w", stretch=True)
+        for pattern, meaning in CONSTRAINT_EXAMPLES:
+            tree.insert("", "end", values=(pattern, meaning))
+
+        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        tree.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+
+        ttk.Label(
+            container,
+            text=(
+                "Rappels : ^ indique le début, $ la fin, . exactement une "
+                "lettre et .* zéro ou plusieurs lettres. Une contrainte "
+                "n’ajoute aucune lettre au tirage. Ne saisissez pas de / "
+                "autour des motifs."
+            ),
+            style="Muted.TLabel",
+            justify="left",
+            wraplength=650,
+        ).grid(row=3, column=0, sticky="ew", pady=(14, 0))
+        ttk.Button(
+            container,
+            text="Fermer",
+            style="Secondary.TButton",
+            command=self.destroy,
+        ).grid(row=4, column=0, sticky="e", pady=(14, 0))
 
 
 class App(tk.Tk):
@@ -162,6 +258,15 @@ class App(tk.Tk):
         )
         style.map("Secondary.TButton", background=[("active", "#DFA633")])
         style.configure(
+            "Help.TButton",
+            background=COLORS["navy"],
+            foreground="white",
+            padding=(7, 5),
+            font=("TkDefaultFont", 11, "bold"),
+            borderwidth=0,
+        )
+        style.map("Help.TButton", background=[("active", COLORS["teal"])])
+        style.configure(
             "Results.Treeview",
             background=COLORS["card"],
             fieldbackground=COLORS["card"],
@@ -178,6 +283,33 @@ class App(tk.Tk):
             relief="flat",
         )
         style.map("Results.Treeview", background=[("selected", COLORS["teal"])])
+
+        # La table d'aide reprend exactement la taille de la police système
+        # utilisée par le texte « Rappels », qui est plus grande sur macOS que
+        # la police compacte des tableaux de résultats.
+        help_heading_font = tkfont.nametofont("TkDefaultFont").copy()
+        help_heading_font.configure(weight="bold")
+        self._constraint_help_heading_font = help_heading_font
+        style.configure(
+            "ConstraintHelp.Treeview",
+            background=COLORS["card"],
+            fieldbackground=COLORS["card"],
+            foreground=COLORS["navy"],
+            rowheight=35,
+            bordercolor=COLORS["border"],
+            font="TkDefaultFont",
+        )
+        style.configure(
+            "ConstraintHelp.Treeview.Heading",
+            background="#E7EFED",
+            foreground=COLORS["navy"],
+            font=help_heading_font,
+            relief="flat",
+        )
+        style.map(
+            "ConstraintHelp.Treeview",
+            background=[("selected", COLORS["teal"])],
+        )
 
     def _build_ui(self) -> None:
         header = tk.Frame(self, background=COLORS["navy"], padx=34, pady=24)
@@ -257,8 +389,18 @@ class App(tk.Tk):
         ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(14, 0))
 
         self.constraints_var = tk.StringVar()
+        constraints_row = ttk.Frame(search_card, style="Card.TFrame")
+        constraints_row.grid(
+            row=4,
+            column=0,
+            columnspan=3,
+            sticky="ew",
+            pady=(7, 5),
+        )
+        constraints_row.columnconfigure(0, weight=1)
+
         self.constraints_entry = tk.Entry(
-            search_card,
+            constraints_row,
             textvariable=self.constraints_var,
             font=("TkFixedFont", 13),
             foreground=COLORS["navy"],
@@ -267,15 +409,15 @@ class App(tk.Tk):
             relief="solid",
             borderwidth=1,
         )
-        self.constraints_entry.grid(
-            row=4,
-            column=0,
-            columnspan=3,
-            sticky="ew",
-            pady=(7, 5),
-            ipady=5,
-        )
+        self.constraints_entry.grid(row=0, column=0, sticky="ew", ipady=5)
         self.constraints_entry.bind("<Return>", lambda _event: self._start_search())
+        ttk.Button(
+            constraints_row,
+            text="?",
+            width=3,
+            style="Help.TButton",
+            command=self._show_constraints_help,
+        ).grid(row=0, column=1, padx=(8, 0), sticky="ns")
         ttk.Label(
             search_card,
             text=(
@@ -394,6 +536,9 @@ class App(tk.Tk):
         count = "trois" if limit == 3 else str(limit)
         self.longest_title_var.set(f"Les {count} mots les plus longs")
         self.score_title_var.set(f"Les {count} meilleurs scores")
+
+    def _show_constraints_help(self) -> None:
+        ConstraintHelpWindow(self)
 
     def _load_dictionary(self) -> None:
         self._start_activity("Chargement du dictionnaire…")

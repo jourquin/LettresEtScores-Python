@@ -76,6 +76,9 @@ champ distinct des lettres disponibles.
 | `e$` | le mot doit se terminer par `E` |
 | `^..r` | `R` doit être la troisième lettre |
 | `u.$` | `U` doit être l'avant-dernière lettre |
+| `^....$` | le mot doit contenir exactement quatre lettres |
+| `^.e..$` | le mot doit contenir quatre lettres et la deuxième doit être `E` |
+| `^.{5,7}$` | le mot doit contenir entre cinq et sept lettres |
 | `^j.r.*a$` | le mot commence par `J`, contient `R` en troisième position et finit par `A` |
 
 Les principaux symboles sont `^` pour le début du mot, `$` pour la fin, `.`
@@ -98,6 +101,10 @@ Une contrainte filtre les résultats, mais n'ajoute jamais de lettre au tirage.
 Ainsi, le motif `^c` ne permet de former `CHAT` que si un `C` ou un joker figure
 aussi dans le champ **Vos lettres**. Les motifs sont insensibles à la casse.
 Une expression invalide est signalée avant le lancement de la recherche.
+
+Le bouton **?**, situé à droite du champ **Contraintes**, ouvre une aide
+intégrée qui reprend les principaux symboles et une série d'exemples. Il n'est
+donc pas nécessaire de consulter ce fichier pendant l'utilisation du jeu.
 
 ## Règles de calcul
 
