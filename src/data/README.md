@@ -5,7 +5,8 @@ doit contenir un fichier unique nommé `ods9.txt`, encodé en UTF-8, avec un mot
 par ligne.
 
 Le moteur ouvre le ZIP et lit ce fichier directement en mémoire au démarrage :
-il ne décompresse rien sur le disque.
+il ne décompresse rien sur le disque. Les mots de plus de 15 lettres restent
+dans l'archive, mais ne sont pas chargés par l'application.
 
 ## Contenu attendu
 
@@ -14,6 +15,9 @@ il ne décompresse rien sur le disque.
 - longueurs de 2 à 21 lettres ;
 - 9 221 mots de 16 à 21 lettres ;
 - tri alphabétique.
+
+Après filtrage, le moteur indexe 407 128 mots de 2 à 15 lettres, conformément
+au contenu de la version papier de l'ODS 9.
 
 ## Origine et statut
 

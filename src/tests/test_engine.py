@@ -52,30 +52,25 @@ class EngineTests(unittest.TestCase):
         with self.assertRaises(RackError):
             normalize_rack("ABC???")
 
-    def test_normalization_accepts_21_letters(self):
+    def test_normalization_accepts_15_letters(self):
         self.assertEqual(
-            normalize_rack("ABCDEFGHIJKLMNOPQRSTU"),
-            ("ABCDEFGHIJKLMNOPQRSTU", 0),
+            normalize_rack("ABCDEFGHIJKLMNO"),
+            ("ABCDEFGHIJKLMNO", 0),
         )
 
-    def test_normalization_rejects_22_letters(self):
+    def test_normalization_rejects_16_letters(self):
         with self.assertRaises(RackError):
-            normalize_rack("ABCDEFGHIJKLMNOPQRSTUV")
+            normalize_rack("ABCDEFGHIJKLMNOP")
 
-    def test_loads_ods9_from_zip_without_extracting_it(self):
+    def test_loads_ods9_from_zip_and_ignores_words_over_15_letters(self):
         archive_path = Path(self.temporary.name) / "ods9.zip"
         with ZipFile(archive_path, "w") as archive:
             archive.writestr("ods9.txt", WORDS)
 
         finder = WordFinder(archive_path)
 
-        self.assertEqual(finder.word_count, len(WORDS.splitlines()))
+        self.assertEqual(finder.word_count, len(WORDS.splitlines()) - 1)
         self.assertFalse((Path(self.temporary.name) / "ods9.txt").exists())
-
-    def test_finds_word_longer_than_15_letters(self):
-        result = self.finder.search("ABCDEFGHIJKLMNOPQRSTU")
-        self.assertEqual(result.longest[0].word, "ABCDEFGHIJKLMNOPQRSTU")
-        self.assertEqual(result.longest[0].length, 21)
 
     def test_default_result_limit_is_ten(self):
         result = self.finder.search("ABCDEFGHIJKLMNO")
