@@ -22,8 +22,10 @@ flowchart TD
 
 ## 1. Préparation du dictionnaire
 
-Le dictionnaire est chargé une seule fois au lancement de l'application. Pour
-chaque ligne du fichier :
+Le dictionnaire est chargé une seule fois au lancement de l'application.
+L'archive `ods9.zip` est ouverte avec la bibliothèque standard de Python, puis
+`ods9.txt` est lu directement dans l'archive : aucun fichier temporaire n'est
+créé sur le disque. Pour chaque ligne :
 
 1. le mot est converti en majuscules ;
 2. sa longueur et son format sont vérifiés ;
@@ -39,7 +41,7 @@ mot, tableau_de_26_compteurs, score_de_base
 ```
 
 Le tableau de compteurs est enregistré sous la forme compacte de 26 octets.
-Les mots sont regroupés par longueur, de 2 à 15 lettres. Lors d'une recherche,
+Les mots sont regroupés par longueur, de 2 à 21 lettres. Lors d'une recherche,
 l'algorithme peut ainsi ignorer immédiatement tous les mots plus longs que le
 nombre de lettres disponibles.
 
@@ -54,7 +56,7 @@ dictionnaire :
 - suppression des séparateurs autorisés : espaces, virgules, tirets, etc. ;
 - comptage séparé des jokers représentés par `?` ou `*`.
 
-Le tirage doit contenir entre 2 et 15 lettres ou jokers, dont au maximum deux
+Le tirage doit contenir entre 2 et 21 lettres ou jokers, dont au maximum deux
 jokers.
 Les contraintes sont saisies dans un champ séparé et ne modifient jamais les
 lettres disponibles.
@@ -155,6 +157,9 @@ La clé de tri employée dans le programme est équivalente à :
 (-longueur, -score, mot)
 ```
 
+Le classement ne traite pas différemment les mots de plus de 15 lettres, mais
+l'interface les affiche en rouge pour signaler les possibilités de Benjamin.
+
 ## 7. Sélection des meilleurs scores
 
 Le second classement inverse la priorité des deux premiers critères :
@@ -219,7 +224,7 @@ mots examinés :
 
 Le coût supplémentaire dépend du nombre et de la complexité des expressions
 régulières. Il reste faible pour les motifs positionnels prévus ici, notamment
-parce qu'un mot ne dépasse jamais 15 lettres. Des expressions volontairement
+parce qu'un mot ne dépasse jamais 21 lettres. Des expressions volontairement
 complexes avec beaucoup de retours arrière peuvent néanmoins être plus lentes.
 
 La mise à jour des classements ne porte jamais sur plus de `N + 1` éléments,
@@ -232,8 +237,9 @@ est construit une fois au lancement afin que les recherches suivantes puissent
 
 ## 10. Limites
 
-- La qualité des résultats dépend de la liste de mots fournie. Cette liste est
-  approchante et non homologuée pour la compétition.
+- La qualité des résultats dépend de la liste de mots fournie. La liste issue
+  du dépôt tiers `Thecoolsim/ODS9` n'est ni une publication officielle ni, à
+  elle seule, une référence homologuée pour la compétition.
 - Un mot peut employer tout ou partie des lettres du tirage ; il n'est pas
   nécessaire de toutes les utiliser.
 - L'algorithme recherche des mots isolés. Il ne tient pas compte d'une grille,

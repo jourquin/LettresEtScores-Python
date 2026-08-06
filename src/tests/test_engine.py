@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from zipfile import ZipFile
 
 from engine import (
     ConstraintError,
@@ -30,6 +31,7 @@ JAZZ
 JURA
 TAXI
 ZOO
+ABCDEFGHIJKLMNOPQRSTU
 """
 
 
@@ -49,6 +51,31 @@ class EngineTests(unittest.TestCase):
     def test_normalization_rejects_too_many_jokers(self):
         with self.assertRaises(RackError):
             normalize_rack("ABC???")
+
+    def test_normalization_accepts_21_letters(self):
+        self.assertEqual(
+            normalize_rack("ABCDEFGHIJKLMNOPQRSTU"),
+            ("ABCDEFGHIJKLMNOPQRSTU", 0),
+        )
+
+    def test_normalization_rejects_22_letters(self):
+        with self.assertRaises(RackError):
+            normalize_rack("ABCDEFGHIJKLMNOPQRSTUV")
+
+    def test_loads_ods9_from_zip_without_extracting_it(self):
+        archive_path = Path(self.temporary.name) / "ods9.zip"
+        with ZipFile(archive_path, "w") as archive:
+            archive.writestr("ods9.txt", WORDS)
+
+        finder = WordFinder(archive_path)
+
+        self.assertEqual(finder.word_count, len(WORDS.splitlines()))
+        self.assertFalse((Path(self.temporary.name) / "ods9.txt").exists())
+
+    def test_finds_word_longer_than_15_letters(self):
+        result = self.finder.search("ABCDEFGHIJKLMNOPQRSTU")
+        self.assertEqual(result.longest[0].word, "ABCDEFGHIJKLMNOPQRSTU")
+        self.assertEqual(result.longest[0].length, 21)
 
     def test_default_result_limit_is_ten(self):
         result = self.finder.search("ABCDEFGHIJKLMNO")

@@ -5,6 +5,7 @@ fournies :
 
 - les mots les plus longs (dix résultats par défaut) ;
 - les mots ayant la plus grande valeur au Scrabble français ;
+- les mots de 16 à 21 lettres utiles pour préparer un coup du Benjamin ;
 - la définition d'un mot sélectionné, lorsque l'ordinateur est connecté à
   Internet.
 
@@ -52,7 +53,7 @@ sudo dnf install python3-tkinter
 
 ## Utilisation
 
-1. Introduisez de 2 à 15 lettres dans le champ **Vos lettres**.
+1. Introduisez de 2 à 21 lettres dans le champ **Vos lettres**.
 2. Utilisez `?` ou `*` pour représenter un joker, au maximum deux.
 3. Saisissez éventuellement un ou plusieurs motifs dans le champ
    **Contraintes**.
@@ -62,6 +63,9 @@ sudo dnf install python3-tkinter
 
 Les espaces, virgules, tirets et accents sont acceptés dans la saisie. Les
 jokers permettent de compléter un mot mais valent zéro point.
+
+Dans les deux listes de résultats, les mots de plus de 15 lettres apparaissent
+en rouge afin de les distinguer immédiatement.
 
 ### Contraintes de recherche
 
@@ -142,10 +146,16 @@ définition est trouvée.
 
 ## Données et limites
 
-Le fichier `src/data/mots_francais_jeu.txt` contient 311 721 formes. Il s'agit
-d'une liste approchante pour jeu de lettres, pas d'une copie officielle de
-l'ODS et pas d'une référence homologuée pour la compétition. La licence du
-corpus général est fournie dans `LICENSE_SOURCE.txt`.
+L'application ouvre directement `src/data/ods9.zip` au démarrage et lit le
+fichier `ods9.txt` qu'il contient sans l'extraire sur le disque. L'archive
+contient 416 349 formes uniques en majuscules ASCII, de 2 à 21 lettres, dont
+9 221 formes de plus de 15 lettres.
+
+Cette liste a été préparée à partir du dépôt tiers
+[`Thecoolsim/ODS9`](https://github.com/Thecoolsim/ODS9). Ce dépôt n'est pas une
+publication officielle de Larousse ou de la FISF et ne fournit pas de licence
+de redistribution explicite. Elle ne constitue pas à
+elle seule une référence homologuée pour la compétition.
 
 ## Tests
 

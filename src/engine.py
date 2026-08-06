@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from contextlib import ExitStack
 from dataclasses import dataclass
+from io import TextIOWrapper
 from pathlib import Path
 import re
 from time import perf_counter
 import unicodedata
+from zipfile import ZipFile
 
 
 LETTER_POINTS = {
@@ -18,6 +21,10 @@ LETTER_POINTS = {
     **dict.fromkeys("KWXYZ", 10),
 }
 POINTS_BY_INDEX = tuple(LETTER_POINTS[chr(65 + index)] for index in range(26))
+MIN_WORD_LENGTH = 2
+STANDARD_BOARD_LENGTH = 15
+MAX_WORD_LENGTH = 21
+WORD_ARCHIVE_MEMBER = "ods9.txt"
 
 
 class RackError(ValueError):
@@ -80,10 +87,12 @@ def normalize_rack(raw: str) -> tuple[str, int]:
             raise RackError(f"Caractère non reconnu : {character!r}")
 
     tile_count = len(letters) + jokers
-    if tile_count < 2:
+    if tile_count < MIN_WORD_LENGTH:
         raise RackError("Introduisez au moins deux lettres.")
-    if tile_count > 15:
-        raise RackError("Le tirage ne peut pas dépasser quinze lettres.")
+    if tile_count > MAX_WORD_LENGTH:
+        raise RackError(
+            f"Le tirage ne peut pas dépasser {MAX_WORD_LENGTH} lettres."
+        )
     if jokers > 2:
         raise RackError("Un tirage peut contenir au maximum deux jokers.")
 
@@ -113,18 +122,43 @@ class WordFinder:
 
     def __init__(self, word_file: str | Path):
         self.word_file = Path(word_file)
-        self._by_length: list[list[_Entry]] = [[] for _ in range(16)]
+        self._by_length: list[list[_Entry]] = [
+            [] for _ in range(MAX_WORD_LENGTH + 1)
+        ]
         self.word_count = 0
         self._load()
 
     def _load(self) -> None:
         seen: set[str] = set()
-        with self.word_file.open("r", encoding="utf8") as stream:
+        with ExitStack() as stack:
+            if self.word_file.suffix.lower() == ".zip":
+                archive = stack.enter_context(ZipFile(self.word_file))
+                try:
+                    binary_stream = stack.enter_context(
+                        archive.open(WORD_ARCHIVE_MEMBER)
+                    )
+                except KeyError as exc:
+                    raise ValueError(
+                        f"L’archive {self.word_file.name!r} ne contient pas "
+                        f"{WORD_ARCHIVE_MEMBER!r}."
+                    ) from exc
+                stream = stack.enter_context(
+                    TextIOWrapper(binary_stream, encoding="utf8")
+                )
+            else:
+                stream = stack.enter_context(
+                    self.word_file.open("r", encoding="utf8")
+                )
+
             for line_number, line in enumerate(stream, start=1):
                 word = line.strip().upper()
                 if not word:
                     continue
-                if not 2 <= len(word) <= 15 or not word.isascii() or not word.isalpha():
+                if (
+                    not MIN_WORD_LENGTH <= len(word) <= MAX_WORD_LENGTH
+                    or not word.isascii()
+                    or not word.isalpha()
+                ):
                     raise ValueError(
                         f"Mot invalide à la ligne {line_number} : {word!r}"
                     )
@@ -175,9 +209,9 @@ class WordFinder:
         longest: list[Candidate] = []
         highest: list[Candidate] = []
         possible_count = 0
-        max_length = min(15, len(letters) + jokers)
+        max_length = min(MAX_WORD_LENGTH, len(letters) + jokers)
 
-        for length in range(2, max_length + 1):
+        for length in range(MIN_WORD_LENGTH, max_length + 1):
             for entry in self._by_length[length]:
                 if any(pattern.search(entry.word) is None for pattern in constraints):
                     continue
