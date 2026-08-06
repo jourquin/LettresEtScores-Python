@@ -28,11 +28,12 @@ L'archive `ods9.zip` est ouverte avec la bibliothèque standard de Python, puis
 créé sur le disque. Pour chaque ligne :
 
 1. le mot est converti en majuscules ;
-2. sa longueur et son format sont vérifiés ;
-3. les doublons sont éliminés ;
-4. le nombre d'occurrences de chacune des 26 lettres est calculé ;
-5. la valeur totale des lettres est précalculée ;
-6. le mot est rangé dans le groupe correspondant à sa longueur.
+2. les formes de plus de 15 lettres sont ignorées sans modifier l'archive ;
+3. la longueur et le format des autres formes sont vérifiés ;
+4. les doublons sont éliminés ;
+5. le nombre d'occurrences de chacune des 26 lettres est calculé ;
+6. la valeur totale des lettres est précalculée ;
+7. le mot est rangé dans le groupe correspondant à sa longueur.
 
 Chaque mot est donc représenté en mémoire par trois éléments :
 
@@ -41,7 +42,7 @@ mot, tableau_de_26_compteurs, score_de_base
 ```
 
 Le tableau de compteurs est enregistré sous la forme compacte de 26 octets.
-Les mots sont regroupés par longueur, de 2 à 21 lettres. Lors d'une recherche,
+Les mots sont regroupés par longueur, de 2 à 15 lettres. Lors d'une recherche,
 l'algorithme peut ainsi ignorer immédiatement tous les mots plus longs que le
 nombre de lettres disponibles.
 
@@ -56,7 +57,7 @@ dictionnaire :
 - suppression des séparateurs autorisés : espaces, virgules, tirets, etc. ;
 - comptage séparé des jokers représentés par `?` ou `*`.
 
-Le tirage doit contenir entre 2 et 21 lettres ou jokers, dont au maximum deux
+Le tirage doit contenir entre 2 et 15 lettres ou jokers, dont au maximum deux
 jokers.
 Les contraintes sont saisies dans un champ séparé et ne modifient jamais les
 lettres disponibles.
@@ -157,9 +158,6 @@ La clé de tri employée dans le programme est équivalente à :
 (-longueur, -score, mot)
 ```
 
-Le classement ne traite pas différemment les mots de plus de 15 lettres, mais
-l'interface les affiche en rouge pour signaler les possibilités de Benjamin.
-
 ## 7. Sélection des meilleurs scores
 
 Le second classement inverse la priorité des deux premiers critères :
@@ -224,8 +222,9 @@ mots examinés :
 
 Le coût supplémentaire dépend du nombre et de la complexité des expressions
 régulières. Il reste faible pour les motifs positionnels prévus ici, notamment
-parce qu'un mot ne dépasse jamais 21 lettres. Des expressions volontairement
-complexes avec beaucoup de retours arrière peuvent néanmoins être plus lentes.
+parce qu'un mot chargé ne dépasse jamais 15 lettres. Des expressions
+volontairement complexes avec beaucoup de retours arrière peuvent néanmoins
+être plus lentes.
 
 La mise à jour des classements ne porte jamais sur plus de `N + 1` éléments,
 où `N` est le nombre de résultats demandé, limité à 20 dans l'interface. Les

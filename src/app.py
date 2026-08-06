@@ -16,7 +16,6 @@ from engine import (
     ConstraintError,
     RackError,
     SearchResult,
-    STANDARD_BOARD_LENGTH,
     WordFinder,
     compile_constraints,
     normalize_rack,
@@ -35,7 +34,6 @@ COLORS = {
     "gold": "#F2B84B",
     "muted": "#62717E",
     "border": "#D8DDD9",
-    "red": "#C62828",
 }
 
 CONSTRAINT_EXAMPLES = (
@@ -368,7 +366,7 @@ class App(tk.Tk):
             justify="center",
             textvariable=self.result_count_var,
         )
-        self.result_count.pack(fill="x", ipady=4)
+        self.result_count.pack(fill="x")
 
         self.search_button = ttk.Button(
             search_card,
@@ -383,7 +381,7 @@ class App(tk.Tk):
             search_card,
             text=(
                 "Espaces, virgules, points-virgules et accents acceptés · "
-                "? ou * = joker · 21 lettres ou jokers maximum"
+                "? ou * = joker · 15 lettres ou jokers maximum"
             ),
             style="Muted.TLabel",
         ).grid(row=2, column=0, columnspan=3, sticky="w")
@@ -444,12 +442,6 @@ class App(tk.Tk):
         self.longest_tree = self._make_result_card(results, self.longest_title_var, 0)
         self.score_tree = self._make_result_card(results, self.score_title_var, 1)
 
-        ttk.Label(
-            main,
-            text="En rouge : mots de plus de 15 lettres (coups du Benjamin).",
-            style="Status.TLabel",
-        ).pack(anchor="w", pady=(7, 0))
-
         controls = ttk.Frame(main, style="App.TFrame")
         controls.pack(fill="x", pady=(16, 0))
         self.definition_button = ttk.Button(
@@ -508,7 +500,6 @@ class App(tk.Tk):
             )
         scrollbar = ttk.Scrollbar(card, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=scrollbar.set)
-        tree.tag_configure("benjamin", foreground=COLORS["red"])
         tree.grid(row=1, column=0, sticky="nsew")
         scrollbar.grid(row=1, column=1, sticky="ns")
         tree.bind("<<TreeviewSelect>>", self._select_result)
@@ -623,16 +614,10 @@ class App(tk.Tk):
         for item in tree.get_children():
             tree.delete(item)
         for rank, candidate in enumerate(candidates, start=1):
-            tags = (
-                ("benjamin",)
-                if candidate.length > STANDARD_BOARD_LENGTH
-                else ()
-            )
             tree.insert(
                 "",
                 "end",
                 values=(rank, candidate.word, candidate.length, candidate.score),
-                tags=tags,
             )
 
     def _show_results(self, future) -> None:

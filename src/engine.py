@@ -22,8 +22,7 @@ LETTER_POINTS = {
 }
 POINTS_BY_INDEX = tuple(LETTER_POINTS[chr(65 + index)] for index in range(26))
 MIN_WORD_LENGTH = 2
-STANDARD_BOARD_LENGTH = 15
-MAX_WORD_LENGTH = 21
+MAX_WORD_LENGTH = 15
 WORD_ARCHIVE_MEMBER = "ods9.txt"
 
 
@@ -154,8 +153,10 @@ class WordFinder:
                 word = line.strip().upper()
                 if not word:
                     continue
+                if len(word) > MAX_WORD_LENGTH:
+                    continue
                 if (
-                    not MIN_WORD_LENGTH <= len(word) <= MAX_WORD_LENGTH
+                    len(word) < MIN_WORD_LENGTH
                     or not word.isascii()
                     or not word.isalpha()
                 ):
