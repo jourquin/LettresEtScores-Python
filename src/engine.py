@@ -23,7 +23,7 @@ LETTER_POINTS = {
 POINTS_BY_INDEX = tuple(LETTER_POINTS[chr(65 + index)] for index in range(26))
 MIN_WORD_LENGTH = 2
 MAX_WORD_LENGTH = 15
-WORD_ARCHIVE_MEMBER = "ods9.txt"
+WORD_ARCHIVE_MEMBER = "lexique-francais.txt"
 
 
 class RackError(ValueError):
@@ -32,6 +32,10 @@ class RackError(ValueError):
 
 class ConstraintError(ValueError):
     """Erreur de syntaxe dans une contrainte d'expression régulière."""
+
+
+class WordError(ValueError):
+    """Erreur de validation d’un mot à vérifier."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,6 +53,13 @@ class SearchResult:
     elapsed_seconds: float
     normalized_letters: str
     joker_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class WordCheckResult:
+    word: str
+    exists: bool
+    elapsed_seconds: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -96,6 +107,27 @@ def normalize_rack(raw: str) -> tuple[str, int]:
         raise RackError("Un tirage peut contenir au maximum deux jokers.")
 
     return "".join(letters), jokers
+
+
+def normalize_lookup_word(raw: str) -> str:
+    """Normalise un mot littéral destiné à une vérification exacte."""
+
+    word = _ascii_letters(raw.strip())
+
+    for character in word:
+        if not "A" <= character <= "Z":
+            raise WordError(
+                f"Caractère non reconnu dans le mot : {character!r}"
+            )
+
+    if len(word) < MIN_WORD_LENGTH:
+        raise WordError("Introduisez un mot d’au moins deux lettres.")
+    if len(word) > MAX_WORD_LENGTH:
+        raise WordError(
+            f"Le mot ne peut pas dépasser {MAX_WORD_LENGTH} lettres."
+        )
+
+    return word
 
 
 def compile_constraints(raw: str) -> tuple[re.Pattern[str], ...]:
@@ -177,7 +209,41 @@ class WordFinder:
                     _Entry(word, bytes(counts), base_score)
                 )
 
+        for entries in self._by_length:
+            entries.sort(key=lambda entry: entry.word)
+
         self.word_count = len(seen)
+
+    def check_word(self, raw_word: str) -> WordCheckResult:
+        """Vérifie par dichotomie si un mot littéral figure dans le corpus."""
+
+        started = perf_counter()
+        word = normalize_lookup_word(raw_word)
+        entries = self._by_length[len(word)]
+        lower_bound = 0
+        upper_bound = len(entries)
+
+        while lower_bound < upper_bound:
+            middle = lower_bound + (upper_bound - lower_bound) // 2
+            candidate = entries[middle].word
+
+            if candidate == word:
+                return WordCheckResult(
+                    word=word,
+                    exists=True,
+                    elapsed_seconds=perf_counter() - started,
+                )
+
+            if candidate < word:
+                lower_bound = middle + 1
+            else:
+                upper_bound = middle
+
+        return WordCheckResult(
+            word=word,
+            exists=False,
+            elapsed_seconds=perf_counter() - started,
+        )
 
     @staticmethod
     def _insert_best(

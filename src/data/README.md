@@ -1,31 +1,34 @@
-# Liste de mots utilisée par l'application
+# Lexique embarqué
 
-L'application attend une archive nommée `ods9.zip` dans ce répertoire. Elle
-doit contenir un fichier unique nommé `ods9.txt`, encodé en UTF-8, avec un mot
-par ligne.
+L’application attend `lexique-francais.zip` dans ce répertoire. L’archive
+contient un membre unique nommé `lexique-francais.txt`, encodé en ASCII, avec
+une forme normalisée par ligne.
 
-Le moteur ouvre le ZIP et lit ce fichier directement en mémoire au démarrage :
-il ne décompresse rien sur le disque. Les mots de plus de 15 lettres restent
-dans l'archive, mais ne sont pas chargés par l'application.
+Le moteur ouvre le ZIP et lit ce membre directement en mémoire au démarrage :
+aucun fichier n’est extrait sur le disque.
 
-## Contenu attendu
+## Contenu
 
-- 416 349 mots uniques ;
+- 402 448 formes uniques ;
 - caractères `A` à `Z` uniquement ;
-- longueurs de 2 à 21 lettres ;
-- 9 221 mots de 16 à 21 lettres ;
-- tri alphabétique.
-
-Après filtrage, le moteur indexe 407 128 mots de 2 à 15 lettres, conformément
-au contenu de la version papier de l'ODS 9.
+- longueurs de 2 à 15 lettres ;
+- tri alphabétique strict ;
+- SHA-256 du texte :
+  `ac58f8941544d0ef759a8b234d46aac4262cbf25af35f33b1d1916575c06c737` ;
+- SHA-256 de l’archive :
+  `977df4fb0f2451ef161a8f4892413b794ff87ade4afaceac455587e0362cc1e5`.
 
 ## Origine et statut
 
-L'archive fournie séparément a été préparée à partir du fichier `words.js` du
-dépôt tiers [`Thecoolsim/ODS9`](https://github.com/Thecoolsim/ODS9), puis
-normalisée en un mot par ligne.
+Le lexique est dérivé de
+[Morphalou 3.1](https://hdl.handle.net/11403/morphalou/v3.1), conçu par Marie
+Tonnelier et maintenu par l’ATILF (CNRS et Université de Lorraine). Il est
+distribué sous LGPL-LR.
 
-Ce dépôt n'est pas une publication officielle de Larousse ou de la FISF et ne
-contient pas de licence de redistribution explicite. La liste ne constitue pas
-à elle seule une référence homologuée pour la compétition.
+Les règles de sélection, la provenance, les empreintes et les instructions de
+régénération sont documentées dans [`../../Corpus/README.md`](../../Corpus/README.md).
+La notice et le texte complet de la licence se trouvent également dans
+`Corpus/`.
 
+Cette liste n’est ni une reproduction de l’ODS ni une référence officielle
+pour les compétitions.

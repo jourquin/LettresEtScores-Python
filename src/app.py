@@ -16,15 +16,21 @@ from engine import (
     ConstraintError,
     RackError,
     SearchResult,
+    WordCheckResult,
+    WordError,
     WordFinder,
     compile_constraints,
+    normalize_lookup_word,
     normalize_rack,
 )
 
 
 APP_NAME = "Lettres & Scores"
+APP_VERSION = "1.0.0"
 BASE_DIR = Path(__file__).resolve().parent
-WORD_FILE = BASE_DIR / "data" / "ods9.zip"
+REPOSITORY_ROOT = BASE_DIR.parent
+WORD_FILE = BASE_DIR / "data" / "lexique-francais.zip"
+CORPUS_DIR = REPOSITORY_ROOT / "Corpus"
 
 COLORS = {
     "background": "#F4F1EA",
@@ -131,7 +137,9 @@ class ConstraintHelpWindow(tk.Toplevel):
             text=(
                 "Les contraintes utilisent des expressions régulières. "
                 "Les motifs sont insensibles à la casse. Plusieurs motifs "
-                "séparés par un point-virgule doivent tous correspondre."
+                "séparés par un point-virgule doivent tous correspondre. "
+                "Si le tirage est vide, le contenu entier est vérifié comme "
+                "un mot littéral."
             ),
             style="Muted.TLabel",
             justify="left",
@@ -168,7 +176,8 @@ class ConstraintHelpWindow(tk.Toplevel):
                 "Rappels : ^ indique le début, $ la fin, . exactement une "
                 "lettre et .* zéro ou plusieurs lettres. Une contrainte "
                 "n’ajoute aucune lettre au tirage. Ne saisissez pas de / "
-                "autour des motifs."
+                "autour des motifs. En mode vérification, ne saisissez que "
+                "le mot à tester, sans symbole d’expression régulière."
             ),
             style="Muted.TLabel",
             justify="left",
@@ -180,6 +189,127 @@ class ConstraintHelpWindow(tk.Toplevel):
             style="Secondary.TButton",
             command=self.destroy,
         ).grid(row=4, column=0, sticky="e", pady=(14, 0))
+
+
+class AboutWindow(tk.Toplevel):
+    """Présente les informations de provenance et les licences embarquées."""
+
+    def __init__(self, parent: tk.Misc, word_count: int | None):
+        super().__init__(parent)
+        self.title("À propos / Licences")
+        self.geometry("760x620")
+        self.minsize(600, 440)
+        self.configure(background=COLORS["background"])
+        self.transient(parent)
+
+        container = ttk.Frame(self, padding=18, style="Card.TFrame")
+        container.pack(fill="both", expand=True, padx=18, pady=18)
+
+        ttk.Label(
+            container,
+            text="À PROPOS / LICENCES",
+            style="DefinitionTitle.TLabel",
+        ).pack(anchor="w", pady=(0, 12))
+
+        notebook = ttk.Notebook(container)
+        notebook.pack(fill="both", expand=True)
+
+        count_text = (
+            f"{word_count:,} formes de 2 à 15 lettres".replace(",", " ")
+            if word_count is not None
+            else "Corpus en cours de chargement"
+        )
+        about_text = (
+            f"{APP_NAME}\nVersion {APP_VERSION}\n\n"
+            f"Lexique français\n{count_text}. Le corpus est dérivé de "
+            "Morphalou 3.1, conçu par Marie Tonnelier et maintenu par "
+            "l’ATILF (CNRS et Université de Lorraine). Les formes ont été "
+            "filtrées, normalisées, dédoublonnées et triées le 9 août 2026.\n\n"
+            "Ce lexique n’est ni une reproduction de l’ODS ni une référence "
+            "officielle pour les compétitions. La présence ou l’absence d’un "
+            "mot ne constitue donc pas une validation officielle.\n\n"
+            "Licences\nLe code de l’application est distribué sous licence "
+            "MIT. Le corpus dérivé de Morphalou reste distribué sous LGPL-LR.\n\n"
+            "Définitions\nLes extraits sont consultés à la demande sur le "
+            "Wiktionnaire et restent disponibles sous CC BY-SA 4.0, sauf "
+            "mention contraire. Ils ne sont pas inclus dans le corpus local."
+        )
+        self._add_text_tab(notebook, "À propos", about_text)
+        self._add_text_tab(
+            notebook,
+            "Notice du corpus",
+            self._read_document(CORPUS_DIR / "NOTICE.txt"),
+        )
+        self._add_text_tab(
+            notebook,
+            "Licence LGPL-LR",
+            self._read_document(
+                CORPUS_DIR / "LICENSE-Morphalou-LGPL-LR.txt"
+            ),
+        )
+        self._add_text_tab(
+            notebook,
+            "Licence MIT",
+            self._read_document(REPOSITORY_ROOT / "LICENSE"),
+        )
+
+        links = ttk.Frame(container, style="Card.TFrame")
+        links.pack(fill="x", pady=(12, 0))
+        ttk.Button(
+            links,
+            text="Source Morphalou 3.1",
+            command=lambda: webbrowser.open(
+                "https://hdl.handle.net/11403/morphalou/v3.1"
+            ),
+        ).pack(side="left")
+        ttk.Button(
+            links,
+            text="Code source et corpus modifiable",
+            command=lambda: webbrowser.open(
+                "https://github.com/jourquin/LettresEtScores-Python"
+            ),
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            links,
+            text="Wiktionnaire",
+            command=lambda: webbrowser.open("https://fr.wiktionary.org/"),
+        ).pack(side="left", padx=(8, 0))
+        ttk.Button(
+            links,
+            text="Fermer",
+            style="Secondary.TButton",
+            command=self.destroy,
+        ).pack(side="right")
+
+    @staticmethod
+    def _read_document(path: Path) -> str:
+        try:
+            return path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            return f"Le document {path.name} n’a pas pu être chargé.\n\n{error}"
+
+    @staticmethod
+    def _add_text_tab(notebook: ttk.Notebook, title: str, contents: str) -> None:
+        frame = ttk.Frame(notebook, padding=12, style="Card.TFrame")
+        frame.columnconfigure(0, weight=1)
+        frame.rowconfigure(0, weight=1)
+        text = tk.Text(
+            frame,
+            wrap="word",
+            relief="flat",
+            background=COLORS["card"],
+            foreground=COLORS["navy"],
+            font=("TkDefaultFont", 11),
+            padx=6,
+            pady=6,
+        )
+        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=text.yview)
+        text.configure(yscrollcommand=scrollbar.set)
+        text.insert("1.0", contents)
+        text.configure(state="disabled")
+        text.grid(row=0, column=0, sticky="nsew")
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        notebook.add(frame, text=title)
 
 
 class App(tk.Tk):
@@ -318,6 +448,12 @@ class App(tk.Tk):
     def _build_ui(self) -> None:
         header = tk.Frame(self, background=COLORS["navy"], padx=34, pady=24)
         header.pack(fill="x")
+        ttk.Button(
+            header,
+            text="À propos / Licences",
+            style="Secondary.TButton",
+            command=self._show_about,
+        ).pack(side="right", anchor="n", padx=(16, 0))
         ttk.Label(header, text=APP_NAME, style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             header,
@@ -376,19 +512,21 @@ class App(tk.Tk):
             command=self._start_search,
         )
         self.search_button.grid(row=1, column=2, padx=(12, 0), pady=(10, 8), sticky="s")
+        self.letters_var.trace_add("write", self._update_search_action)
+        self._update_search_action()
         search_card.columnconfigure(0, weight=1)
         ttk.Label(
             search_card,
             text=(
                 "Espaces, virgules, points-virgules et accents acceptés · "
-                "? ou * = joker · 15 lettres ou jokers maximum"
+                "? ou * = joker · laissez vide pour vérifier un mot"
             ),
             style="Muted.TLabel",
         ).grid(row=2, column=0, columnspan=3, sticky="w")
 
         ttk.Label(
             search_card,
-            text="Contraintes (facultatives)",
+            text="Contraintes",
             style="CardTitle.TLabel",
         ).grid(row=3, column=0, columnspan=3, sticky="w", pady=(14, 0))
 
@@ -424,15 +562,40 @@ class App(tk.Tk):
         ).grid(row=0, column=1, padx=(8, 0), sticky="ns")
         ttk.Label(
             search_card,
-            text=(
-                "Exemples : a = contient A · ^a = commence par A · "
-                "e$ = finit par E · ^..r = R en 3e · séparez par ;"
-            ),
+            text="Contraintes optionnelles (Ex. ^J..A$;R) ou mot à vérifier si 'Vos Lettres' est vide",
             style="Muted.TLabel",
         ).grid(row=5, column=0, columnspan=3, sticky="w")
 
-        results = ttk.Frame(main, style="App.TFrame")
-        results.pack(fill="both", expand=True, pady=(18, 0))
+        self.word_check_frame = ttk.Frame(
+            main,
+            padding=18,
+            style="Card.TFrame",
+        )
+        ttk.Label(
+            self.word_check_frame,
+            text="VÉRIFICATION",
+            style="CardTitle.TLabel",
+        ).pack(anchor="w")
+        self.word_check_message_var = tk.StringVar()
+        ttk.Label(
+            self.word_check_frame,
+            textvariable=self.word_check_message_var,
+            style="CardTitle.TLabel",
+        ).pack(anchor="w", pady=(10, 4))
+        ttk.Label(
+            self.word_check_frame,
+            text=(
+                "Le corpus est dérivé de Morphalou 3.1. Ce résultat ne "
+                "constitue pas une validation officielle pour une compétition."
+            ),
+            style="Muted.TLabel",
+            wraplength=820,
+            justify="left",
+        ).pack(anchor="w")
+
+        self.results_frame = ttk.Frame(main, style="App.TFrame")
+        self.results_frame.pack(fill="both", expand=True, pady=(18, 0))
+        results = self.results_frame
         results.columnconfigure(0, weight=1)
         results.columnconfigure(1, weight=1)
         results.rowconfigure(0, weight=1)
@@ -442,8 +605,9 @@ class App(tk.Tk):
         self.longest_tree = self._make_result_card(results, self.longest_title_var, 0)
         self.score_tree = self._make_result_card(results, self.score_title_var, 1)
 
-        controls = ttk.Frame(main, style="App.TFrame")
-        controls.pack(fill="x", pady=(16, 0))
+        self.controls_frame = ttk.Frame(main, style="App.TFrame")
+        self.controls_frame.pack(fill="x", pady=(16, 0))
+        controls = self.controls_frame
         self.definition_button = ttk.Button(
             controls,
             text="Voir la définition du mot sélectionné",
@@ -454,7 +618,7 @@ class App(tk.Tk):
         self.definition_button.pack(side="right")
 
         self.progress = ttk.Progressbar(controls, mode="indeterminate", length=150)
-        self.status_var = tk.StringVar(value="Chargement du dictionnaire…")
+        self.status_var = tk.StringVar(value="Chargement du lexique…")
         self.status_label = ttk.Label(
             controls,
             textvariable=self.status_var,
@@ -544,8 +708,28 @@ class App(tk.Tk):
     def _show_constraints_help(self) -> None:
         ConstraintHelpWindow(self)
 
+    def _show_about(self) -> None:
+        word_count = self.finder.word_count if self.finder else None
+        AboutWindow(self, word_count)
+
+    def _update_search_action(self, *_args) -> None:
+        action = "Vérifier" if not self.letters_var.get().strip() else "Chercher"
+        self.search_button.configure(text=action)
+
+    def _hide_word_check(self) -> None:
+        self.word_check_frame.pack_forget()
+
+    def _show_results_area(self) -> None:
+        if not self.results_frame.winfo_manager():
+            self.results_frame.pack(
+                fill="both",
+                expand=True,
+                pady=(18, 0),
+                before=self.controls_frame,
+            )
+
     def _load_dictionary(self) -> None:
-        self._start_activity("Chargement du dictionnaire…")
+        self._start_activity("Chargement du lexique…")
         self._submit(WordFinder, self._dictionary_loaded, WORD_FILE)
 
     def _submit(self, function, callback, *args) -> None:
@@ -567,7 +751,7 @@ class App(tk.Tk):
             self.finder = future.result()
         except Exception as exc:
             self.status_var.set("Échec du chargement.")
-            messagebox.showerror(APP_NAME, f"Le dictionnaire n’a pas pu être chargé.\n\n{exc}")
+            messagebox.showerror(APP_NAME, f"Le lexique n’a pas pu être chargé.\n\n{exc}")
             return
         self.search_button.configure(state="normal")
         self.status_var.set(f"{self.finder.word_count:,} mots chargés".replace(",", " "))
@@ -578,11 +762,20 @@ class App(tk.Tk):
             return
         raw_letters = self.letters_var.get()
         raw_constraints = self.constraints_var.get()
+        is_word_check = not raw_letters.strip()
         try:
             # Validation immédiate : les erreurs apparaissent sans lancer de thread.
-            normalize_rack(raw_letters)
-            compile_constraints(raw_constraints)
-            limit = self._requested_limit()
+            if is_word_check:
+                normalize_lookup_word(raw_constraints)
+                limit = None
+            else:
+                normalize_rack(raw_letters)
+                compile_constraints(raw_constraints)
+                limit = self._requested_limit()
+        except WordError as exc:
+            messagebox.showwarning(APP_NAME, str(exc))
+            self.constraints_entry.focus_set()
+            return
         except RackError as exc:
             messagebox.showwarning(APP_NAME, str(exc))
             self.entry.focus_set()
@@ -597,9 +790,23 @@ class App(tk.Tk):
             return
 
         self.selected_word = None
-        self._update_result_titles(limit)
         self.definition_button.configure(state="disabled")
         self.search_button.configure(state="disabled")
+        self._hide_word_check()
+
+        if is_word_check:
+            self.results_frame.pack_forget()
+            self._start_activity("Vérification en cours…")
+            self._submit(
+                self.finder.check_word,
+                self._show_word_check,
+                raw_constraints,
+            )
+            return
+
+        assert limit is not None
+        self._show_results_area()
+        self._update_result_titles(limit)
         self._start_activity("Recherche en cours…")
         self._submit(
             self.finder.search,
@@ -619,6 +826,32 @@ class App(tk.Tk):
                 "end",
                 values=(rank, candidate.word, candidate.length, candidate.score),
             )
+
+    def _show_word_check(self, future) -> None:
+        self._stop_activity()
+        self.search_button.configure(state="normal")
+        try:
+            result: WordCheckResult = future.result()
+        except Exception as exc:
+            self.status_var.set("La vérification a échoué.")
+            messagebox.showerror(APP_NAME, str(exc))
+            return
+
+        self.results_frame.pack_forget()
+        if result.exists:
+            message = f"« {result.word} » figure dans le corpus."
+        else:
+            message = f"« {result.word} » ne figure pas dans le corpus."
+
+        self.word_check_message_var.set(message)
+        self.word_check_frame.pack(
+            fill="x",
+            pady=(18, 0),
+            before=self.controls_frame,
+        )
+        self.status_var.set(
+            f"Vérification de {result.word} · {result.elapsed_seconds:.4f} s"
+        )
 
     def _show_results(self, future) -> None:
         self._stop_activity()

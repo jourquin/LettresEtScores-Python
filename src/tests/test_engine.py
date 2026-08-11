@@ -6,8 +6,10 @@ from zipfile import ZipFile
 from engine import (
     ConstraintError,
     RackError,
+    WordError,
     WordFinder,
     compile_constraints,
+    normalize_lookup_word,
     normalize_rack,
 )
 
@@ -62,15 +64,36 @@ class EngineTests(unittest.TestCase):
         with self.assertRaises(RackError):
             normalize_rack("ABCDEFGHIJKLMNOP")
 
-    def test_loads_ods9_from_zip_and_ignores_words_over_15_letters(self):
-        archive_path = Path(self.temporary.name) / "ods9.zip"
+    def test_loads_open_lexicon_from_zip_without_extracting_it(self):
+        archive_path = Path(self.temporary.name) / "lexique-francais.zip"
         with ZipFile(archive_path, "w") as archive:
-            archive.writestr("ods9.txt", WORDS)
+            archive.writestr("lexique-francais.txt", WORDS)
 
         finder = WordFinder(archive_path)
 
         self.assertEqual(finder.word_count, len(WORDS.splitlines()) - 1)
-        self.assertFalse((Path(self.temporary.name) / "ods9.txt").exists())
+        self.assertFalse(
+            (Path(self.temporary.name) / "lexique-francais.txt").exists()
+        )
+
+    def test_word_check_finds_an_existing_word(self):
+        result = self.finder.check_word("chât")
+
+        self.assertEqual(result.word, "CHAT")
+        self.assertTrue(result.exists)
+
+    def test_word_check_reports_an_absent_word(self):
+        result = self.finder.check_word("CHATEAU")
+
+        self.assertEqual(result.word, "CHATEAU")
+        self.assertFalse(result.exists)
+
+    def test_word_check_treats_regular_expression_symbols_literally(self):
+        with self.assertRaises(WordError):
+            self.finder.check_word("^CHAT$")
+
+    def test_lookup_word_normalizes_ligatures(self):
+        self.assertEqual(normalize_lookup_word("cœur"), "COEUR")
 
     def test_default_result_limit_is_ten(self):
         result = self.finder.search("ABCDEFGHIJKLMNO")

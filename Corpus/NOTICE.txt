@@ -1,0 +1,12 @@
+Lexique français ouvert de Lettres & Scores 1.0.0
+
+Ressource dérivée de Morphalou 3.1, conçue par Marie Tonnelier et maintenue par l'ATILF (CNRS et Université de Lorraine).
+Source canonique : https://hdl.handle.net/11403/morphalou/v3.1
+Version de la source : 3.1
+Documentation des données : 2016-06
+Année de la citation ORTOLANG : 2023
+Date des modifications : 2026-08-09
+
+Modifications : sélection des formes attestées par au moins deux lexiques d'origine ; exclusion des abréviations signalées, des catégories inconnues, des locutions et formes ponctuées ; normalisation des accents et ligatures en lettres A-Z ; limitation aux longueurs de 2 à 15 lettres ; suppression des doublons et tri alphabétique.
+
+Cette ressource dérivée est distribuée sous LGPL-LR. Le texte de la licence figure dans LICENSE-Morphalou-LGPL-LR.txt. Elle est fournie sans garantie. Elle n'est ni une reproduction de l'ODS ni une référence officielle pour les compétitions.

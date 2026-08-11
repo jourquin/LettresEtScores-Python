@@ -5,7 +5,9 @@ partir d'une série de lettres :
 
 - les N mots les plus longs qui peuvent être formés ;
 - les N mots dont les lettres rapportent le plus de points au Scrabble
-  français.
+  français ;
+- ou, lorsque le tirage est vide, si le mot saisi dans **Contraintes** figure
+  exactement dans le corpus.
 
 Les définitions du Wiktionnaire sont recherchées dans un second temps et
 n'interviennent jamais dans la sélection ou le classement des mots.
@@ -14,18 +16,18 @@ n'interviennent jamais dans la sélection ou le classement des mots.
 
 ```mermaid
 flowchart TD
-    A["Saisie des lettres"] --> B["Normalisation du tirage"]
-    B --> C["Parcours des mots admissibles"]
-    C --> D["Vérification et calcul du score"]
-    D --> E["Mise à jour des deux classements"]
+    A["Saisie"] --> B{"Tirage vide ?"}
+    B -->|oui| C["Vérification exacte"]
+    B -->|non| D["Recherche par tirage"]
+    D --> E["Deux classements"]
 ```
 
-## 1. Préparation du dictionnaire
+## 1. Préparation du lexique
 
-Le dictionnaire est chargé une seule fois au lancement de l'application.
-L'archive `ods9.zip` est ouverte avec la bibliothèque standard de Python, puis
-`ods9.txt` est lu directement dans l'archive : aucun fichier temporaire n'est
-créé sur le disque. Pour chaque ligne :
+Le lexique est chargé une seule fois au lancement de l'application.
+L’archive `lexique-francais.zip` est ouverte avec la bibliothèque standard de
+Python, puis `lexique-francais.txt` est lu directement dans l’archive : aucun
+fichier temporaire n’est créé sur le disque. Pour chaque ligne :
 
 1. le mot est converti en majuscules ;
 2. les formes de plus de 15 lettres sont ignorées sans modifier l'archive ;
@@ -49,7 +51,7 @@ nombre de lettres disponibles.
 ## 2. Normalisation des lettres introduites
 
 La saisie de l'utilisateur est normalisée de la même manière que le
-dictionnaire :
+lexique :
 
 - conversion en majuscules ;
 - suppression des accents : `É` devient `E` ;
@@ -57,10 +59,14 @@ dictionnaire :
 - suppression des séparateurs autorisés : espaces, virgules, tirets, etc. ;
 - comptage séparé des jokers représentés par `?` ou `*`.
 
-Le tirage doit contenir entre 2 et 15 lettres ou jokers, dont au maximum deux
-jokers.
+Lors d’une recherche, le tirage doit contenir entre 2 et 15 lettres ou jokers,
+dont au maximum deux jokers.
 Les contraintes sont saisies dans un champ séparé et ne modifient jamais les
 lettres disponibles.
+
+Si le tirage est vide, l’application change de mode : le contenu du champ
+**Contraintes** est alors traité comme un mot littéral à vérifier et non comme
+une expression régulière.
 
 Un tableau `R` de 26 compteurs est ensuite construit. `R[i]` représente le
 nombre d'exemplaires disponibles de la lettre `i` dans le tirage.
@@ -86,7 +92,20 @@ Les contraintes `^j ; ^..r ; a$` sont toutes obligatoires et sont équivalentes
 au motif unique `^j.r.*a$`. Une erreur de compilation est présentée à
 l'utilisateur avant de lancer la recherche.
 
-## 4. Vérification qu'un mot peut être formé
+## 4. Vérification exacte d’un mot
+
+Le mot saisi est débarrassé des espaces placés aux extrémités, converti en
+majuscules, privé de ses diacritiques et ses ligatures `Œ` et `Æ` sont
+développées. Tout caractère qui ne correspond pas à une lettre de `A` à `Z`
+est rejeté ; la longueur doit rester comprise entre 2 et 15 lettres.
+
+Comme chaque groupe de longueur est trié lors du chargement, le moteur utilise
+une recherche par dichotomie. Les symboles tels que `^`, `.`, `$` ou `;` ne
+sont jamais interprétés comme des expressions régulières dans ce mode. Le
+résultat indique uniquement la présence de la forme dans le corpus Morphalou
+dérivé et ne constitue pas une validation officielle de compétition.
+
+## 5. Vérification qu'un mot peut être formé
 
 Pour chaque mot dont la longueur ne dépasse pas le nombre de lettres et de
 jokers disponibles, le moteur compare :
@@ -113,7 +132,7 @@ Cette comparaison respecte les répétitions. Ainsi, un seul `A` dans le tirage
 ne suffit pas pour former un mot qui en contient deux, sauf si un joker couvre
 le second `A`.
 
-## 5. Calcul des points
+## 6. Calcul des points
 
 Le score de base d'un mot est la somme des valeurs de ses lettres :
 
@@ -144,7 +163,7 @@ Le calcul ne tient pas compte :
 
 Il s'agit donc de la valeur brute des lettres utilisées pour former le mot.
 
-## 6. Sélection des mots les plus longs
+## 7. Sélection des mots les plus longs
 
 Les candidats sont classés selon les critères suivants, dans cet ordre :
 
@@ -158,7 +177,7 @@ La clé de tri employée dans le programme est équivalente à :
 (-longueur, -score, mot)
 ```
 
-## 7. Sélection des meilleurs scores
+## 8. Sélection des meilleurs scores
 
 Le second classement inverse la priorité des deux premiers critères :
 
@@ -177,41 +196,46 @@ classement. Lorsqu'un candidat valable est trouvé, il est ajouté à chacun des
 deux petits tableaux, le tableau est trié, puis tous les éléments au-delà de la
 Nème position sont supprimés.
 
-## 8. Pseudocode simplifié
+## 9. Pseudocode simplifié
 
 ```text
 charger et indexer les mots par longueur
-normaliser les lettres introduites
-séparer et compiler les expressions régulières
-compter les lettres du tirage
 
-meilleurs_longueurs = liste vide
-meilleurs_scores = liste vide
+si le tirage est vide :
+    normaliser le contenu de Contraintes comme un mot littéral
+    rechercher ce mot par dichotomie dans son groupe de longueur
+    renvoyer présent ou absent
+sinon :
+    normaliser les lettres introduites
+    séparer et compiler les expressions régulières
+    compter les lettres du tirage
+    meilleurs_longueurs = liste vide
+    meilleurs_scores = liste vide
 
-pour chaque mot dont la longueur est compatible :
-    pour chaque expression régulière :
-        si l'expression ne correspond pas au mot :
-            rejeter immédiatement le mot
+    pour chaque mot dont la longueur est compatible :
+        pour chaque expression régulière :
+            si l'expression ne correspond pas au mot :
+                rejeter immédiatement le mot
 
-    lettres_manquantes = 0
-    pénalité_jokers = 0
+        lettres_manquantes = 0
+        pénalité_jokers = 0
 
-    pour chacune des 26 lettres :
-        déficit = max(0, quantité_dans_mot - quantité_dans_tirage)
-        lettres_manquantes += déficit
-        pénalité_jokers += déficit × valeur_de_la_lettre
+        pour chacune des 26 lettres :
+            déficit = max(0, quantité_dans_mot - quantité_dans_tirage)
+            lettres_manquantes += déficit
+            pénalité_jokers += déficit × valeur_de_la_lettre
 
-        si lettres_manquantes > nombre_de_jokers :
-            rejeter immédiatement le mot
+            si lettres_manquantes > nombre_de_jokers :
+                rejeter immédiatement le mot
 
-    si le mot est réalisable :
-        score = score_de_base - pénalité_jokers
-        insérer le mot dans le classement par longueur
-        insérer le mot dans le classement par score
-        ne conserver que les N premiers de chaque classement
+        si le mot est réalisable :
+            score = score_de_base - pénalité_jokers
+            insérer le mot dans le classement par longueur
+            insérer le mot dans le classement par score
+            ne conserver que les N premiers de chaque classement
 ```
 
-## 9. Complexité
+## 10. Complexité
 
 Soit `C` le nombre de mots dont la longueur est compatible avec le tirage. Sans
 contrainte, le moteur compare au maximum 26 compteurs par mot. Comme la taille
@@ -234,16 +258,20 @@ L'index complet occupe un espace proportionnel au nombre de mots : `O(N)`. Il
 est construit une fois au lancement afin que les recherches suivantes puissent
 être effectuées directement en mémoire, sans requête vers une base de données.
 
-## 10. Limites
+La vérification exacte d’un mot utilise une dichotomie dans le groupe de sa
+longueur et s’exécute donc en `O(log Nₗ)`, où `Nₗ` est le nombre de formes de
+cette longueur.
 
-- La qualité des résultats dépend de la liste de mots fournie. La liste issue
-  du dépôt tiers `Thecoolsim/ODS9` n'est ni une publication officielle ni, à
-  elle seule, une référence homologuée pour la compétition.
+## 11. Limites
+
+- La qualité des résultats dépend du lexique dérivé de Morphalou 3.1. Celui-ci
+  n’est ni une reproduction de l’ODS ni une référence officielle ou homologuée
+  pour la compétition.
 - Un mot peut employer tout ou partie des lettres du tirage ; il n'est pas
   nécessaire de toutes les utiliser.
 - L'algorithme recherche des mots isolés. Il ne tient pas compte d'une grille,
   des raccords possibles ni des multiplicateurs.
 - Les graphies accentuées sont confondues après normalisation, comme au
   Scrabble francophone.
-- Les mots du dictionnaire étant normalisés avec les lettres `A` à `Z`, il est
+- Les mots du lexique étant normalisés avec les lettres `A` à `Z`, il est
   préférable d'utiliser des lettres non accentuées dans les motifs.

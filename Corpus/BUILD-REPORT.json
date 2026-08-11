@@ -1,0 +1,63 @@
+{
+  "corpus": {
+    "license": "LGPL-LR",
+    "modification_date": "2026-08-09",
+    "name": "Lexique français ouvert de Lettres & Scores",
+    "release": "1.0.0"
+  },
+  "output": {
+    "compression": "ZIP avec DEFLATE niveau 9",
+    "member": "lexique-francais.txt",
+    "resource": "src/data/lexique-francais.zip",
+    "resource_sha256": "977df4fb0f2451ef161a8f4892413b794ff87ade4afaceac455587e0362cc1e5",
+    "uncompressed_size_bytes": 4483142,
+    "word_count": 402448,
+    "words_sha256": "ac58f8941544d0ef759a8b234d46aac4262cbf25af35f33b1d1916575c06c737"
+  },
+  "selection": {
+    "allowed_categories": [
+      "Adjectif qualificatif",
+      "Adverbe",
+      "Conjonction",
+      "Déterminant",
+      "Interjection",
+      "Nom commun",
+      "Nombre",
+      "Pronom",
+      "Préposition",
+      "Verbe"
+    ],
+    "alphabet": "A-Z",
+    "exclude_abbreviation_subcategory": true,
+    "ligatures": {
+      "æ": "AE",
+      "œ": "OE"
+    },
+    "maximum_length": 15,
+    "minimum_distinct_origins": 2,
+    "minimum_length": 2,
+    "remove_diacritics": true
+  },
+  "source": {
+    "canonical_url": "https://hdl.handle.net/11403/morphalou/v3.1",
+    "citation_year": 2023,
+    "csv_member": "Morphalou3.1_formatCSV_toutEnUn/Morphalou3.1_CSV.csv",
+    "documentation_date": "2016-06",
+    "download_url": "https://repository.ortolang.fr/api/content/morphalou/4/Morphalou3.1_formatCSV_toutEnUn.zip",
+    "name": "Morphalou 3.1",
+    "sha256": "4fc815cbf17aecdf1b47f6bbc263489a460fd8d11ae17e6b522336c72bd0e333",
+    "version": "3.1"
+  },
+  "statistics": {
+    "accepted_rows": 557239,
+    "duplicate_rows": 154791,
+    "rejected_abbreviation": 260,
+    "rejected_insufficient_origins": 399792,
+    "rejected_not_simple": 3780,
+    "rejected_too_long": 15112,
+    "rejected_too_short": 31,
+    "rejected_unaccepted_category": 356,
+    "source_rows": 976570,
+    "unique_words": 402448
+  }
+}

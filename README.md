@@ -5,6 +5,7 @@ fournies :
 
 - les mots les plus longs (dix résultats par défaut) ;
 - les mots ayant la plus grande valeur au Scrabble français ;
+- la présence d’un mot dans le corpus local ;
 - la définition d'un mot sélectionné, lorsque l'ordinateur est connecté à
   Internet.
 
@@ -63,11 +64,19 @@ sudo dnf install python3-tkinter
 Les espaces, virgules, tirets et accents sont acceptés dans la saisie. Les
 jokers permettent de compléter un mot mais valent zéro point.
 
+Pour vérifier un mot, laissez **Vos lettres** vide, saisissez le mot entier
+dans **Contraintes**, puis cliquez sur **Vérifier**. Dans ce mode, le contenu
+est interprété littéralement et non comme une expression régulière. La réponse
+indique seulement si la forme figure dans le corpus Morphalou dérivé ; elle ne
+constitue pas une validation officielle pour une compétition.
+
 ### Contraintes de recherche
 
 Les contraintes utilisent la syntaxe courante des expressions régulières,
 connue notamment par les utilisateurs de `grep`. Elles sont saisies dans un
-champ distinct des lettres disponibles.
+champ distinct des lettres disponibles. Elles jouent ce rôle uniquement
+lorsque le champ **Vos lettres** contient un tirage ; lorsque celui-ci est vide,
+le même champ sert à vérifier un mot exact.
 
 | Motif | Signification |
 | --- | --- |
@@ -106,6 +115,13 @@ Le bouton **?**, situé à droite du champ **Contraintes**, ouvre une aide
 intégrée qui reprend les principaux symboles et une série d'exemples. Il n'est
 donc pas nécessaire de consulter ce fichier pendant l'utilisation du jeu.
 
+## À propos et licences
+
+Le bouton **À propos / Licences** ouvre une fenêtre à onglets défilables qui
+présente la version de l’application, la provenance du lexique, sa notice et le
+texte complet de la LGPL-LR. Elle fournit également les liens vers Morphalou et
+vers la forme modifiable du corpus.
+
 ## Règles de calcul
 
 L'application applique la valeur française des lettres :
@@ -138,22 +154,45 @@ définition. Elle ne représente ni un pourcentage ni le nombre de mots chargés
 Les définitions sont fournies au mieux : certains mots rares ou certaines
 formes conjuguées peuvent ne pas disposer d'une définition directement
 extractible. Le bouton ouvrant la page source reste disponible lorsqu'une
-définition est trouvée.
+définition est trouvée. Les extraits consultés sur le Wiktionnaire restent
+disponibles sous CC BY-SA 4.0, sauf mention contraire ; ils ne sont pas inclus
+dans le corpus local.
 
-## Données et limites
+## Données, licence et limites
 
-L'application ouvre directement `src/data/ods9.zip` au démarrage et lit le
-fichier `ods9.txt` qu'il contient sans l'extraire sur le disque. L'archive reste
-intacte avec ses 416 349 formes uniques en majuscules ASCII, de 2 à 21 lettres.
-Au chargement, les 9 221 formes de plus de 15 lettres sont ignorées : le moteur
-indexe 407 128 mots de 2 à 15 lettres, conformément au contenu de la version
-papier de l'ODS 9.
+L’application ouvre directement `src/data/lexique-francais.zip` au démarrage
+et lit son membre `lexique-francais.txt` sans l’extraire sur le disque. Le
+moteur indexe 402 448 formes uniques en majuscules ASCII, de 2 à 15 lettres.
 
-Cette liste a été préparée à partir du dépôt tiers
-[`Thecoolsim/ODS9`](https://github.com/Thecoolsim/ODS9). Ce dépôt n'est pas une
-publication officielle de Larousse ou de la FISF et ne fournit pas de licence
-de redistribution explicite. Elle ne constitue pas à
-elle seule une référence homologuée pour la compétition.
+Le corpus a été construit à partir de
+[Morphalou 3.1](https://hdl.handle.net/11403/morphalou/v3.1), conçu par Marie
+Tonnelier et maintenu par l’ATILF (CNRS et Université de Lorraine). Les formes
+ont été filtrées, normalisées, dédoublonnées et triées selon la méthode décrite
+dans [`Corpus/README.md`](Corpus/README.md). Le corpus dérivé reste distribué
+sous LGPL-LR ; sa [notice](Corpus/NOTICE.txt), sa
+[licence](Corpus/LICENSE-Morphalou-LGPL-LR.txt) et son
+[rapport de construction](Corpus/BUILD-REPORT.json) sont fournis dans le dépôt.
+
+La licence MIT à la racine couvre le code de l’application, pas le corpus. Le
+lexique n’est ni une reproduction de l’ODS ni une référence officielle ou
+homologuée pour les compétitions. Les résultats sont fournis sans garantie
+d’exhaustivité ni d’exactitude.
+
+## Régénération du corpus
+
+Le générateur n’utilise que la bibliothèque standard de Python :
+
+```bash
+python3 Tools/build_open_lexicon.py
+```
+
+Il télécharge une version figée de Morphalou, contrôle son SHA-256 et régénère
+l’archive, la notice, la licence et le rapport. Pour contrôler les fichiers
+déjà présents sans téléchargement ni modification :
+
+```bash
+python3 Tools/build_open_lexicon.py --check
+```
 
 ## Tests
 
@@ -161,6 +200,12 @@ Depuis le dossier src :
 
 ```bash
 python3 -m unittest discover -s tests -v
+```
+
+Depuis la racine, les tests du générateur se lancent avec :
+
+```bash
+python3 -m unittest discover -s Tools/tests -v
 ```
 
 Le projet n'utilise aucune dépendance Python externe.
