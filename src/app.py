@@ -211,8 +211,9 @@ class AboutWindow(tk.Toplevel):
             style="DefinitionTitle.TLabel",
         ).pack(anchor="w", pady=(0, 12))
 
-        notebook = ttk.Notebook(container)
-        notebook.pack(fill="both", expand=True)
+        self.notebook = ttk.Notebook(container)
+        self.notebook.pack(fill="both", expand=True)
+        self._tab_texts: dict[str, tk.Text] = {}
 
         count_text = (
             f"{word_count:,} formes de 2 à 15 lettres".replace(",", " ")
@@ -234,24 +235,27 @@ class AboutWindow(tk.Toplevel):
             "Wiktionnaire et restent disponibles sous CC BY-SA 4.0, sauf "
             "mention contraire. Ils ne sont pas inclus dans le corpus local."
         )
-        self._add_text_tab(notebook, "À propos", about_text)
+        self._add_text_tab("À propos", about_text)
         self._add_text_tab(
-            notebook,
             "Notice du corpus",
             self._read_document(CORPUS_DIR / "NOTICE.txt"),
         )
         self._add_text_tab(
-            notebook,
             "Licence LGPL-LR",
             self._read_document(
                 CORPUS_DIR / "LICENSE-Morphalou-LGPL-LR.txt"
             ),
         )
         self._add_text_tab(
-            notebook,
             "Licence MIT",
             self._read_document(REPOSITORY_ROOT / "LICENSE"),
         )
+        self.notebook.bind(
+            "<<NotebookTabChanged>>",
+            self._schedule_selected_tab_refresh,
+            add="+",
+        )
+        self.after_idle(self._refresh_selected_tab)
 
         links = ttk.Frame(container, style="Card.TFrame")
         links.pack(fill="x", pady=(12, 0))
@@ -288,9 +292,8 @@ class AboutWindow(tk.Toplevel):
         except (OSError, UnicodeError) as error:
             return f"Le document {path.name} n’a pas pu être chargé.\n\n{error}"
 
-    @staticmethod
-    def _add_text_tab(notebook: ttk.Notebook, title: str, contents: str) -> None:
-        frame = ttk.Frame(notebook, padding=12, style="Card.TFrame")
+    def _add_text_tab(self, title: str, contents: str) -> None:
+        frame = ttk.Frame(self.notebook, padding=12, style="Card.TFrame")
         frame.columnconfigure(0, weight=1)
         frame.rowconfigure(0, weight=1)
         text = tk.Text(
@@ -309,7 +312,32 @@ class AboutWindow(tk.Toplevel):
         text.configure(state="disabled")
         text.grid(row=0, column=0, sticky="nsew")
         scrollbar.grid(row=0, column=1, sticky="ns")
-        notebook.add(frame, text=title)
+        self.notebook.add(frame, text=title)
+        self._tab_texts[str(frame)] = text
+
+    def _schedule_selected_tab_refresh(self, _event=None) -> None:
+        """Attend que la nouvelle page soit mappée avant de la redessiner."""
+
+        self.after_idle(self._refresh_selected_tab)
+
+    def _refresh_selected_tab(self) -> None:
+        """Force le rafraîchissement du texte sélectionné sur Tk/Aqua."""
+
+        if not self.winfo_exists() or not self.notebook.winfo_exists():
+            return
+        selected_tab = self.notebook.select()
+        text = self._tab_texts.get(selected_tab)
+        if text is None or not text.winfo_exists():
+            return
+
+        # Un Text désactivé ne peut pas recevoir le focus sur toutes les
+        # versions de Tk. Le passage transitoire à l'état normal invalide son
+        # affichage, permet le focus, puis restaure aussitôt la lecture seule.
+        text.configure(state="normal")
+        text.focus_set()
+        text.configure(state="disabled")
+        text.event_generate("<Expose>", when="tail")
+        self.notebook.update_idletasks()
 
 
 class App(tk.Tk):
