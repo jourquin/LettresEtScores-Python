@@ -868,8 +868,12 @@ class App(tk.Tk):
         self.results_frame.pack_forget()
         if result.exists:
             message = f"« {result.word} » figure dans le corpus."
+            self.selected_word = result.word
+            self.definition_button.configure(state="normal")
         else:
             message = f"« {result.word} » ne figure pas dans le corpus."
+            self.selected_word = None
+            self.definition_button.configure(state="disabled")
 
         self.word_check_message_var.set(message)
         self.word_check_frame.pack(
