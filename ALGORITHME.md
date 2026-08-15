@@ -24,10 +24,11 @@ flowchart TD
 
 ## 1. Préparation du lexique
 
-Le lexique est chargé une seule fois au lancement de l'application.
-L’archive `lexique-francais.zip` est ouverte avec la bibliothèque standard de
-Python, puis `lexique-francais.txt` est lu directement dans l’archive : aucun
-fichier temporaire n’est créé sur le disque. Pour chaque ligne :
+Le lexique est chargé une seule fois au lancement de l'application. Par
+défaut, il s'agit de `lexique-francais.zip`; l’option `--corpus` peut désigner
+une autre archive compatible. Le membre `lexique-francais.txt` est lu
+directement avec la bibliothèque standard de Python : aucun fichier temporaire
+n’est créé sur le disque. Pour chaque ligne :
 
 1. le mot est converti en majuscules ;
 2. les formes de plus de 15 lettres sont ignorées sans modifier l'archive ;
@@ -264,9 +265,10 @@ cette longueur.
 
 ## 11. Limites
 
-- La qualité des résultats dépend du lexique dérivé de Morphalou 3.1. Celui-ci
-  n’est ni une reproduction de l’ODS ni une référence officielle ou homologuée
-  pour la compétition.
+- La qualité des résultats dépend du corpus sélectionné. Le corpus Morphalou
+  utilisé par défaut, comme le corpus multisource candidat, n’est ni une
+  reproduction de l’ODS ni une référence officielle ou homologuée pour la
+  compétition.
 - Un mot peut employer tout ou partie des lettres du tirage ; il n'est pas
   nécessaire de toutes les utiliser.
 - L'algorithme recherche des mots isolés. Il ne tient pas compte d'une grille,

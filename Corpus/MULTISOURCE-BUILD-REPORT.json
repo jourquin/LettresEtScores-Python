@@ -1,0 +1,192 @@
+{
+  "base": {
+    "license": "LGPL-LR",
+    "resource": "src/data/lexique-francais.zip",
+    "resource_sha256": "977df4fb0f2451ef161a8f4892413b794ff87ade4afaceac455587e0362cc1e5",
+    "word_count": 402448
+  },
+  "corpus": {
+    "licenses": [
+      "CC BY-SA 4.0",
+      "CeCILL-L",
+      "LGPL-LR",
+      "MPL-2.0"
+    ],
+    "modification_date": "2026-08-12",
+    "name": "Lexique français multisource corroboré de Lettres & Scores",
+    "release": "0.1.0-candidate",
+    "status": "candidate"
+  },
+  "output": {
+    "added_word_count": 33695,
+    "compression": "ZIP avec DEFLATE niveau 9",
+    "member": "lexique-francais.txt",
+    "provenance": "Corpus/MULTISOURCE-PROVENANCE.tsv",
+    "provenance_sha256": "4d7a19332eedb04e17f91b1c47d5e2726771fa7d1c151b6b93b0e776d5ef72b5",
+    "resource": "src/data/lexique-francais-multisources.zip",
+    "resource_sha256": "0a8d90819d6b06ec17b2d3f1394ef949e37ebaacf8a6f55085e6f9b9418586fe",
+    "uncompressed_size_bytes": 4902519,
+    "word_count": 436143,
+    "words_sha256": "a7f4d66f7813ece515ab60c525aeb99683267bd9e7b34f23bb5eed6c59be271e"
+  },
+  "sources": [
+    {
+      "canonical_url": "https://almanach.inria.fr/software_and_resources/Alexina-en.html",
+      "files": {
+        "mlex": {
+          "expected_sha256": "f3da25e58aec161c5ae34d598038dd6304056c2649867ede7e220a74fd34fe12",
+          "file_name": "lefff-3.4.mlex",
+          "sha256": "f3da25e58aec161c5ae34d598038dd6304056c2649867ede7e220a74fd34fe12"
+        }
+      },
+      "license": "CeCILL-L",
+      "name": "Lefff 3.4",
+      "statistics": {
+        "accepted_rows": 469282,
+        "duplicate_rows": 108160,
+        "rejected_category": 52962,
+        "rejected_not_simple": 7030,
+        "rejected_too_long": 19989,
+        "rejected_too_short": 10,
+        "rejected_unsupported_character": 1,
+        "source_rows": 549274,
+        "unique_words": 361122
+      },
+      "version": "3.4"
+    },
+    {
+      "canonical_url": "https://github.com/UnitexGramLab/unitex-lingua/tree/master/fr",
+      "files": {
+        "bin": {
+          "expected_sha256": "b7389a4d60148ff663a11276feffede18b6d2143e45f75201cd64f64b92516c5",
+          "file_name": "Dela_fr.bin",
+          "sha256": "b7389a4d60148ff663a11276feffede18b6d2143e45f75201cd64f64b92516c5"
+        },
+        "inf": {
+          "expected_sha256": "152b0e9f63bd7606733458d419d0f4b06ee809fa5aae4023002b1076486f4bc9",
+          "file_name": "Dela_fr.inf",
+          "sha256": "152b0e9f63bd7606733458d419d0f4b06ee809fa5aae4023002b1076486f4bc9"
+        }
+      },
+      "license": "LGPL-LR",
+      "name": "Unitex DELA français",
+      "statistics": {
+        "accepted_rows": 650285,
+        "duplicate_rows": 27664,
+        "rejected_category": 883,
+        "rejected_not_simple": 155349,
+        "rejected_proper_name": 551,
+        "rejected_too_long": 34944,
+        "rejected_too_short": 50,
+        "source_rows": 842062,
+        "unique_words": 579542
+      },
+      "version": "unitex-lingua commit 70d73c571038e1a19ad9d77e77ab6d29e6c8ce82"
+    },
+    {
+      "canonical_url": "https://grammalecte.net/",
+      "files": {
+        "aff": {
+          "expected_sha256": "05a735d34c912e4e381ff08ee7c747923ccf5cf9dca81d8467982fa1ca51c2b7",
+          "file_name": "index.aff",
+          "sha256": "05a735d34c912e4e381ff08ee7c747923ccf5cf9dca81d8467982fa1ca51c2b7"
+        },
+        "dic": {
+          "expected_sha256": "984e933237bc1224a48f42828233be9b03228260ef67aa8e2bdddcd03a26230d",
+          "file_name": "index.dic",
+          "sha256": "984e933237bc1224a48f42828233be9b03228260ef67aa8e2bdddcd03a26230d"
+        }
+      },
+      "license": "MPL-2.0",
+      "name": "Grammalecte, dictionnaire français classique 7.5",
+      "statistics": {
+        "declared_actual_row_difference": 33,
+        "declared_rows": 84310,
+        "duplicate_rows": 28395,
+        "generated_rows": 3100087,
+        "rejected_keep_case": 158,
+        "rejected_no_suggest": 430,
+        "rejected_not_simple": 2649783,
+        "rejected_too_long": 14412,
+        "rejected_too_short": 31,
+        "rejected_unsupported_character": 27,
+        "source_rows": 84277,
+        "unique_words": 407439
+      },
+      "version": "7.5 (paquet dictionary-fr 3.0.0)"
+    },
+    {
+      "canonical_url": "https://www.lexique.org/databases/Lexique383/",
+      "files": {
+        "txt": {
+          "expected_sha256": "fe2cb931f774d4c44abb92fa785a8425b74f668373012ad22e3980fb1bfea0de",
+          "file_name": "Lexique383.txt",
+          "sha256": "fe2cb931f774d4c44abb92fa785a8425b74f668373012ad22e3980fb1bfea0de"
+        }
+      },
+      "license": "CC BY-SA 4.0",
+      "name": "Lexique 3.83",
+      "statistics": {
+        "accepted_rows": 136956,
+        "duplicate_rows": 22193,
+        "rejected_category": 9,
+        "rejected_not_simple": 4856,
+        "rejected_too_long": 821,
+        "rejected_too_short": 52,
+        "source_rows": 142694,
+        "unique_words": 114763
+      },
+      "version": "3.83"
+    }
+  ],
+  "validation": {
+    "added_word_count": 33695,
+    "alphabet": "A-Z",
+    "base_word_count": 402448,
+    "exact_source_combinations": {
+      "Grammalecte, dictionnaire français classique 7.5 + Lexique 3.83": 848,
+      "Lefff 3.4 + Grammalecte, dictionnaire français classique 7.5": 1421,
+      "Lefff 3.4 + Grammalecte, dictionnaire français classique 7.5 + Lexique 3.83": 100,
+      "Lefff 3.4 + Lexique 3.83": 112,
+      "Lefff 3.4 + Unitex DELA français": 16295,
+      "Lefff 3.4 + Unitex DELA français + Grammalecte, dictionnaire français classique 7.5": 1965,
+      "Lefff 3.4 + Unitex DELA français + Grammalecte, dictionnaire français classique 7.5 + Lexique 3.83": 86,
+      "Lefff 3.4 + Unitex DELA français + Lexique 3.83": 36,
+      "Unitex DELA français + Grammalecte, dictionnaire français classique 7.5": 11583,
+      "Unitex DELA français + Grammalecte, dictionnaire français classique 7.5 + Lexique 3.83": 601,
+      "Unitex DELA français + Lexique 3.83": 648
+    },
+    "exclude_explicit_proper_names": true,
+    "exclude_hunspell_keepcase": true,
+    "exclude_hunspell_nosuggest": true,
+    "external_candidate_count": 238263,
+    "final_word_count": 436143,
+    "maximum_length": 15,
+    "minimum_external_attestations": 2,
+    "minimum_length": 2,
+    "per_source": {
+      "Grammalecte, dictionnaire français classique 7.5": {
+        "added_words_attested": 16604,
+        "marginal_validation_contribution": 13852,
+        "normalized_unique_words": 407439
+      },
+      "Lefff 3.4": {
+        "added_words_attested": 20015,
+        "marginal_validation_contribution": 17828,
+        "normalized_unique_words": 361122
+      },
+      "Lexique 3.83": {
+        "added_words_attested": 2431,
+        "marginal_validation_contribution": 1608,
+        "normalized_unique_words": 114763
+      },
+      "Unitex DELA français": {
+        "added_words_attested": 31214,
+        "marginal_validation_contribution": 28526,
+        "normalized_unique_words": 579542
+      }
+    },
+    "policy": "minimum distinct external source attestations",
+    "uses_ods": false
+  }
+}

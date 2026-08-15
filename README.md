@@ -51,6 +51,34 @@ Si Tkinter manque sous RH ou Fedora :
 sudo dnf install python3-tkinter
 ```
 
+### Choix du corpus
+
+Sans option, l’application charge `src/data/lexique-francais.zip`. L’option
+`--corpus` permet de sélectionner une autre archive compatible, par exemple le
+corpus multisource candidat :
+
+```bash
+python3 src/app.py \
+  --corpus src/data/lexique-francais-multisources.zip
+```
+
+Sous Windows :
+
+```powershell
+py -3 src\app.py --corpus src\data\lexique-francais-multisources.zip
+```
+
+Les scripts de lancement transmettent également leurs arguments :
+
+```bash
+./lancer_macos_linux.sh \
+  --corpus src/data/lexique-francais-multisources.zip
+```
+
+Le chemin peut désigner toute archive ZIP contenant un membre
+`lexique-francais.txt` au format décrit dans `src/data/README.md`. Un chemin
+relatif est interprété depuis le dossier courant.
+
 ## Utilisation
 
 1. Introduisez de 2 à 15 lettres dans le champ **Vos lettres**.
@@ -67,7 +95,7 @@ jokers permettent de compléter un mot mais valent zéro point.
 Pour vérifier un mot, laissez **Vos lettres** vide, saisissez le mot entier
 dans **Contraintes**, puis cliquez sur **Vérifier**. Dans ce mode, le contenu
 est interprété littéralement et non comme une expression régulière. La réponse
-indique seulement si la forme figure dans le corpus Morphalou dérivé ; elle ne
+indique seulement si la forme figure dans le corpus actif ; elle ne
 constitue pas une validation officielle pour une compétition.
 
 ### Contraintes de recherche
@@ -118,9 +146,9 @@ donc pas nécessaire de consulter ce fichier pendant l'utilisation du jeu.
 ## À propos et licences
 
 Le bouton **À propos / Licences** ouvre une fenêtre à onglets défilables qui
-présente la version de l’application, la provenance du lexique, sa notice et le
-texte complet de la LGPL-LR. Elle fournit également les liens vers Morphalou et
-vers la forme modifiable du corpus.
+présente la version de l’application, le nom du corpus actif, sa provenance,
+sa notice et les informations de licence disponibles. Elle fournit également
+les liens vers Morphalou et vers la forme modifiable du corpus.
 
 ## Règles de calcul
 
@@ -160,9 +188,12 @@ dans le corpus local.
 
 ## Données, licence et limites
 
-L’application ouvre directement `src/data/lexique-francais.zip` au démarrage
-et lit son membre `lexique-francais.txt` sans l’extraire sur le disque. Le
-moteur indexe 402 448 formes uniques en majuscules ASCII, de 2 à 15 lettres.
+Par défaut, l’application ouvre directement
+`src/data/lexique-francais.zip` et lit son membre
+`lexique-francais.txt` sans l’extraire sur le disque. Le moteur indexe alors
+402 448 formes uniques en majuscules ASCII, de 2 à 15 lettres. L’option
+`--corpus` permet de charger une autre archive compatible, notamment
+`src/data/lexique-francais-multisources.zip`, qui contient 436 143 formes.
 
 Le corpus a été construit à partir de
 [Morphalou 3.1](https://hdl.handle.net/11403/morphalou/v3.1), conçu par Marie
@@ -194,12 +225,24 @@ déjà présents sans téléchargement ni modification :
 python3 Tools/build_open_lexicon.py --check
 ```
 
-## Tests
-
-Depuis le dossier src :
+Le corpus multisource candidat se construit ensuite avec :
 
 ```bash
-python3 -m unittest discover -s tests -v
+python3 Tools/build_multisource_lexicon.py
+```
+
+Ce second générateur télécharge ou réutilise dans son cache Lefff, Unitex
+DELA, Grammalecte et Lexique 3.83, vérifie leurs empreintes et produit le
+corpus ainsi que son rapport et son fichier de provenance. La procédure
+détaillée figure dans
+[`Corpus/MULTISOURCE-README.md`](Corpus/MULTISOURCE-README.md).
+
+## Tests
+
+Depuis la racine du dépôt :
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s src/tests -v
 ```
 
 Depuis la racine, les tests du générateur se lancent avec :

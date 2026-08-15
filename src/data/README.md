@@ -1,13 +1,20 @@
-# Lexique embarqué
+# Lexiques embarqués
 
-L’application attend `lexique-francais.zip` dans ce répertoire. L’archive
-contient un membre unique nommé `lexique-francais.txt`, encodé en ASCII, avec
-une forme normalisée par ligne.
+Par défaut, l’application charge `lexique-francais.zip` dans ce répertoire.
+L’option `--corpus` permet de sélectionner une autre archive compatible :
+
+```bash
+python3 src/app.py \
+  --corpus src/data/lexique-francais-multisources.zip
+```
+
+Chaque archive contient un membre nommé `lexique-francais.txt`, encodé en
+ASCII, avec une forme normalisée par ligne.
 
 Le moteur ouvre le ZIP et lit ce membre directement en mémoire au démarrage :
 aucun fichier n’est extrait sur le disque.
 
-## Contenu
+## Corpus par défaut
 
 - 402 448 formes uniques ;
 - caractères `A` à `Z` uniquement ;
@@ -32,3 +39,14 @@ La notice et le texte complet de la licence se trouvent également dans
 
 Cette liste n’est ni une reproduction de l’ODS ni une référence officielle
 pour les compétitions.
+
+## Corpus multisource candidat
+
+`lexique-francais-multisources.zip` utilise le même format. Il contient
+436 143 formes : le socle actuel et 33 695 ajouts attestés par au moins deux
+ressources externes ouvertes. Il peut être sélectionné avec `--corpus`, mais
+ne constitue pas la valeur par défaut. Sa provenance, ses empreintes, ses
+règles de sélection et ses limites sont documentées dans
+[`../../Corpus/MULTISOURCE-README.md`](../../Corpus/MULTISOURCE-README.md).
+
+Aucune archive dérivée de l’ODS n’est distribuée dans ce répertoire.

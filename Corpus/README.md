@@ -1,5 +1,12 @@
 # Corpus français ouvert
 
+> Un corpus multisource expérimental est également disponible. Il conserve ce
+> socle Morphalou et ajoute uniquement les formes corroborées par au moins deux
+> ressources externes ouvertes. Voir
+> [MULTISOURCE-README.md](MULTISOURCE-README.md). Il reste au statut **candidat**
+> et n'est pas utilisé par défaut par l'application, mais peut être sélectionné
+> avec `--corpus src/data/lexique-francais-multisources.zip`.
+
 L’application embarque un lexique de **402 448 formes** construit à partir de Morphalou 3.1. Cette ressource remplace l’ancienne liste dérivée de l’ODS9. Elle est indépendante de l’ODS et ne doit pas être présentée comme un lexique officiel de Scrabble ou de compétition.
 
 ## Source et licence

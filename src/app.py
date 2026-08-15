@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
@@ -29,7 +30,8 @@ APP_NAME = "Lettres & Scores"
 APP_VERSION = "1.0.0"
 BASE_DIR = Path(__file__).resolve().parent
 REPOSITORY_ROOT = BASE_DIR.parent
-WORD_FILE = BASE_DIR / "data" / "lexique-francais.zip"
+DEFAULT_CORPUS = BASE_DIR / "data" / "lexique-francais.zip"
+MULTISOURCE_CORPUS = BASE_DIR / "data" / "lexique-francais-multisources.zip"
 CORPUS_DIR = REPOSITORY_ROOT / "Corpus"
 
 COLORS = {
@@ -194,7 +196,12 @@ class ConstraintHelpWindow(tk.Toplevel):
 class AboutWindow(tk.Toplevel):
     """Présente les informations de provenance et les licences embarquées."""
 
-    def __init__(self, parent: tk.Misc, word_count: int | None):
+    def __init__(
+        self,
+        parent: tk.Misc,
+        word_count: int | None,
+        corpus_path: Path,
+    ):
         super().__init__(parent)
         self.title("À propos / Licences")
         self.geometry("760x620")
@@ -220,32 +227,66 @@ class AboutWindow(tk.Toplevel):
             if word_count is not None
             else "Corpus en cours de chargement"
         )
+        resolved_corpus_path = corpus_path.resolve()
+        if resolved_corpus_path == MULTISOURCE_CORPUS.resolve():
+            provenance_text = (
+                "Ce corpus candidat conserve le socle Morphalou 3.1 et le "
+                "complète avec des formes corroborées par au moins deux "
+                "ressources parmi Lefff, Unitex DELA, Grammalecte et "
+                "Lexique 3.83."
+            )
+            license_text = (
+                "Le corpus multisource combine des ressources distribuées "
+                "sous LGPL-LR, CeCILL-L, MPL-2.0 et CC BY-SA 4.0."
+            )
+            notice_path = CORPUS_DIR / "MULTISOURCE-NOTICE.txt"
+        elif resolved_corpus_path == DEFAULT_CORPUS.resolve():
+            provenance_text = (
+                "Le corpus est dérivé de Morphalou 3.1, conçu par Marie "
+                "Tonnelier et maintenu par l’ATILF (CNRS et Université de "
+                "Lorraine). Les formes ont été filtrées, normalisées, "
+                "dédoublonnées et triées."
+            )
+            license_text = (
+                "Le corpus dérivé de Morphalou reste distribué sous LGPL-LR."
+            )
+            notice_path = CORPUS_DIR / "NOTICE.txt"
+        else:
+            provenance_text = (
+                "Ce corpus a été sélectionné avec l’option --corpus. Sa "
+                "provenance et ses conditions de redistribution doivent être "
+                "consultées auprès de son fournisseur."
+            )
+            license_text = (
+                "La licence applicable à ce corpus personnalisé n’est pas "
+                "déterminée par l’application."
+            )
+            notice_path = None
         about_text = (
             f"{APP_NAME}\nVersion {APP_VERSION}\n\n"
-            f"Lexique français\n{count_text}. Le corpus est dérivé de "
-            "Morphalou 3.1, conçu par Marie Tonnelier et maintenu par "
-            "l’ATILF (CNRS et Université de Lorraine). Les formes ont été "
-            "filtrées, normalisées, dédoublonnées et triées le 9 août 2026.\n\n"
+            f"Corpus actif\n{corpus_path.name}\n{count_text}. "
+            f"{provenance_text}\n\n"
             "Ce lexique n’est ni une reproduction de l’ODS ni une référence "
             "officielle pour les compétitions. La présence ou l’absence d’un "
             "mot ne constitue donc pas une validation officielle.\n\n"
             "Licences\nLe code de l’application est distribué sous licence "
-            "MIT. Le corpus dérivé de Morphalou reste distribué sous LGPL-LR.\n\n"
+            f"MIT. {license_text}\n\n"
             "Définitions\nLes extraits sont consultés à la demande sur le "
             "Wiktionnaire et restent disponibles sous CC BY-SA 4.0, sauf "
             "mention contraire. Ils ne sont pas inclus dans le corpus local."
         )
         self._add_text_tab("À propos", about_text)
-        self._add_text_tab(
-            "Notice du corpus",
-            self._read_document(CORPUS_DIR / "NOTICE.txt"),
-        )
-        self._add_text_tab(
-            "Licence LGPL-LR",
-            self._read_document(
-                CORPUS_DIR / "LICENSE-Morphalou-LGPL-LR.txt"
-            ),
-        )
+        if notice_path is not None:
+            self._add_text_tab(
+                "Notice du corpus",
+                self._read_document(notice_path),
+            )
+            self._add_text_tab(
+                "Licence LGPL-LR",
+                self._read_document(
+                    CORPUS_DIR / "LICENSE-Morphalou-LGPL-LR.txt"
+                ),
+            )
         self._add_text_tab(
             "Licence MIT",
             self._read_document(REPOSITORY_ROOT / "LICENSE"),
@@ -341,8 +382,9 @@ class AboutWindow(tk.Toplevel):
 
 
 class App(tk.Tk):
-    def __init__(self):
+    def __init__(self, corpus_path: Path = DEFAULT_CORPUS):
         super().__init__()
+        self.corpus_path = corpus_path
         self.title(APP_NAME)
         self.geometry("980x780")
         self.minsize(840, 680)
@@ -738,7 +780,7 @@ class App(tk.Tk):
 
     def _show_about(self) -> None:
         word_count = self.finder.word_count if self.finder else None
-        AboutWindow(self, word_count)
+        AboutWindow(self, word_count, self.corpus_path)
 
     def _update_search_action(self, *_args) -> None:
         action = "Vérifier" if not self.letters_var.get().strip() else "Chercher"
@@ -758,7 +800,7 @@ class App(tk.Tk):
 
     def _load_dictionary(self) -> None:
         self._start_activity("Chargement du lexique…")
-        self._submit(WordFinder, self._dictionary_loaded, WORD_FILE)
+        self._submit(WordFinder, self._dictionary_loaded, self.corpus_path)
 
     def _submit(self, function, callback, *args) -> None:
         """Exécute une tâche sans appeler Tkinter depuis un thread secondaire."""
@@ -964,11 +1006,38 @@ class App(tk.Tk):
         self.destroy()
 
 
-def main() -> int:
-    if not WORD_FILE.exists():
-        messagebox.showerror(APP_NAME, f"Fichier de mots introuvable :\n{WORD_FILE}")
+def parse_arguments(arguments: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Lance l’interface graphique de Lettres & Scores."
+    )
+    parser.add_argument(
+        "--corpus",
+        type=Path,
+        default=DEFAULT_CORPUS,
+        metavar="CHEMIN",
+        help=(
+            "archive ZIP du corpus à utiliser (défaut: "
+            "src/data/lexique-francais.zip)"
+        ),
+    )
+    return parser.parse_args(arguments)
+
+
+def resolve_corpus_path(path: Path) -> Path:
+    """Résout les chemins utilisateur relativement au dossier courant."""
+    return path.expanduser().resolve()
+
+
+def main(arguments: list[str] | None = None) -> int:
+    options = parse_arguments(arguments)
+    corpus_path = resolve_corpus_path(options.corpus)
+    if not corpus_path.is_file():
+        messagebox.showerror(
+            APP_NAME,
+            f"Fichier de corpus introuvable :\n{corpus_path}",
+        )
         return 1
-    App().mainloop()
+    App(corpus_path).mainloop()
     return 0
 
 

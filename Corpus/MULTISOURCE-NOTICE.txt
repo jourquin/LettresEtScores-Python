@@ -1,0 +1,13 @@
+Lexique français multisource corroboré de Lettres & Scores 0.1.0-candidate
+
+Corpus candidat construit à partir du lexique Morphalou ouvert déjà embarqué par Lettres & Scores. Une forme nouvelle est ajoutée si elle est attestée par au moins 2 sources externes distinctes après filtrage et normalisation.
+
+Sources externes :
+- Lefff 3.4 (3.4) — CeCILL-L — https://almanach.inria.fr/software_and_resources/Alexina-en.html
+- Unitex DELA français (unitex-lingua commit 70d73c571038e1a19ad9d77e77ab6d29e6c8ce82) — LGPL-LR — https://github.com/UnitexGramLab/unitex-lingua/tree/master/fr
+- Grammalecte, dictionnaire français classique 7.5 (7.5 (paquet dictionary-fr 3.0.0)) — MPL-2.0 — https://grammalecte.net/
+- Lexique 3.83 (3.83) — CC BY-SA 4.0 — https://www.lexique.org/databases/Lexique383/
+
+Modifications : exclusion des noms propres explicitement marqués, catégories techniques, entrées Hunspell KEEPCASE, NOSUGGEST ou interdites, locutions et formes ponctuées ; développement des ligatures, suppression des diacritiques, conversion en A-Z, limitation à 2–15 lettres, corroboration, dédoublonnage et tri.
+
+L'ODS n'est jamais consulté. La corroboration est un filtre éditorial automatisé, pas une certification linguistique ni un avis juridique. Toute redistribution doit conserver les attributions et respecter cumulativement les conditions applicables à chaque source. La compatibilité exacte du corpus combiné doit être validée avant une publication publique.
