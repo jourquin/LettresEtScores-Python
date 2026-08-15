@@ -7,6 +7,11 @@ import app
 
 
 class CommandLineTests(unittest.TestCase):
+    def test_active_corpus_label_uses_the_selected_filename(self):
+        label = app.format_active_corpus(Path("data/custom-corpus.zip"))
+
+        self.assertEqual(label, "Corpus actif : custom-corpus.zip")
+
     def test_default_corpus_is_the_open_morphalou_lexicon(self):
         arguments = app.parse_arguments([])
 

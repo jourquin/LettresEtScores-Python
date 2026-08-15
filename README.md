@@ -148,7 +148,8 @@ donc pas nécessaire de consulter ce fichier pendant l'utilisation du jeu.
 Le bouton **À propos / Licences** ouvre une fenêtre à onglets défilables qui
 présente la version de l’application, le nom du corpus actif, sa provenance,
 sa notice et les informations de licence disponibles. Elle fournit également
-les liens vers Morphalou et vers la forme modifiable du corpus.
+les liens vers Morphalou et vers la forme modifiable du corpus. Le nom du
+corpus actif reste également affiché dans l’en-tête de la fenêtre principale.
 
 ## Règles de calcul
 

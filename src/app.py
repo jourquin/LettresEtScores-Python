@@ -34,6 +34,13 @@ DEFAULT_CORPUS = BASE_DIR / "data" / "lexique-francais.zip"
 MULTISOURCE_CORPUS = BASE_DIR / "data" / "lexique-francais-multisources.zip"
 CORPUS_DIR = REPOSITORY_ROOT / "Corpus"
 
+
+def format_active_corpus(path: Path) -> str:
+    """Renvoie le libellé commun utilisé pour identifier le corpus actif."""
+
+    return f"Corpus actif : {path.name}"
+
+
 COLORS = {
     "background": "#F4F1EA",
     "card": "#FFFFFF",
@@ -418,6 +425,12 @@ class App(tk.Tk):
             font=("TkDefaultFont", 10),
         )
         style.configure(
+            "Corpus.TLabel",
+            background=COLORS["navy"],
+            foreground=COLORS["gold"],
+            font=("TkDefaultFont", 9, "bold"),
+        )
+        style.configure(
             "CardTitle.TLabel",
             background=COLORS["card"],
             foreground=COLORS["navy"],
@@ -530,6 +543,11 @@ class App(tk.Tk):
             text="Trouvez les mots qui tirent le meilleur parti de vos lettres.",
             style="Subtitle.TLabel",
         ).pack(anchor="w", pady=(4, 0))
+        ttk.Label(
+            header,
+            text=format_active_corpus(self.corpus_path),
+            style="Corpus.TLabel",
+        ).pack(anchor="w", pady=(6, 0))
 
         main = ttk.Frame(self, padding=(28, 22), style="App.TFrame")
         main.pack(fill="both", expand=True)
@@ -655,7 +673,7 @@ class App(tk.Tk):
         ttk.Label(
             self.word_check_frame,
             text=(
-                "Le corpus est dérivé de Morphalou 3.1. Ce résultat ne "
+                f"{format_active_corpus(self.corpus_path)}. Ce résultat ne "
                 "constitue pas une validation officielle pour une compétition."
             ),
             style="Muted.TLabel",

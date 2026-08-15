@@ -103,8 +103,8 @@ est rejeté ; la longueur doit rester comprise entre 2 et 15 lettres.
 Comme chaque groupe de longueur est trié lors du chargement, le moteur utilise
 une recherche par dichotomie. Les symboles tels que `^`, `.`, `$` ou `;` ne
 sont jamais interprétés comme des expressions régulières dans ce mode. Le
-résultat indique uniquement la présence de la forme dans le corpus Morphalou
-dérivé et ne constitue pas une validation officielle de compétition.
+résultat indique uniquement la présence de la forme dans le corpus actif et ne
+constitue pas une validation officielle de compétition.
 
 ## 5. Vérification qu'un mot peut être formé
 
